@@ -8,9 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DataLoader implements CommandLineRunner {
@@ -87,6 +89,7 @@ public class DataLoader implements CommandLineRunner {
 
     productsToLoad.forEach(productService::createProduct);
 
-    System.out.println("Dummy products loaded: " + productsToLoad.size() + " items.");
+    log.info("Dummy products loaded: {} items.", productsToLoad.size());
+
   }
 }
