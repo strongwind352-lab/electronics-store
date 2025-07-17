@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 public class ProductService {
   private final ProductRepository productRepository;
 
-    public Page<Product> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable);
-    }
+  public Page<Product> getAllProducts(Pageable pageable) {
+    return productRepository.findAll(pageable);
+  }
 
   public void createProduct(Product keyboard) {}
 }

@@ -22,8 +22,8 @@ public class AdminProductController {
   @GetMapping
   public ResponseEntity<Page<Product>> getAllProducts(
       @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Product> products = productService.getAllProducts(pageable);
-        return new ResponseEntity<>(products, HttpStatus.OK);
-    }
+    Pageable pageable = PageRequest.of(page, size);
+    Page<Product> products = productService.getAllProducts(pageable);
+    return new ResponseEntity<>(products, HttpStatus.OK);
+  }
 }
