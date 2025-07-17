@@ -10,16 +10,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/admin/products")
 @RequiredArgsConstructor
 public class AdminProductController {
-    ProductService productService;
+  private final ProductService productService;
 
-    @GetMapping
-    public ResponseEntity<Page<Product>> getAllProducts(int page, int size) {
+  @GetMapping
+  public ResponseEntity<Page<Product>> getAllProducts(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productService.getAllProducts(pageable);
         return new ResponseEntity<>(products, HttpStatus.OK);
