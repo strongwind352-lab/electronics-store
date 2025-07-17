@@ -15,4 +15,6 @@ public class ProductService {
     public Page<Product> getAllProducts(Pageable pageable) {
         return productRepository.findAll(pageable);
     }
+
+  public void createProduct(Product keyboard) {}
 }
