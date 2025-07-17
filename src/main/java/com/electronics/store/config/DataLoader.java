@@ -63,7 +63,7 @@ public class DataLoader implements CommandLineRunner {
     Product outOfStockItem =
         new Product(null, "Rare Collectible", ProductCategory.TOYS, BigDecimal.valueOf(5000.00), 0);
 
-    productService.createProduct(laptop);
+    Product product = productService.createProduct(laptop);
     productService.createProduct(mouse);
     productService.createProduct(keyboard);
     productService.createProduct(monitor);

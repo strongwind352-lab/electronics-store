@@ -16,5 +16,7 @@ public class ProductService {
     return productRepository.findAll(pageable);
   }
 
-  public void createProduct(Product keyboard) {}
+  public Product createProduct(Product product) {
+    return productRepository.save(product);
+  }
 }
