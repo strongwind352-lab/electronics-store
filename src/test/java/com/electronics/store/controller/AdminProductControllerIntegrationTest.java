@@ -1,5 +1,6 @@
 package com.electronics.store.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -106,7 +107,11 @@ class AdminProductControllerIntegrationTest {
             post("/admin/products")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidProductCreateRequest)))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("Validation Error"))
+        .andExpect(jsonPath("$.message", containsString("name: Product name must not be blank")))
+        .andExpect(jsonPath("$.message", containsString("price: Product price must be greater than 0")))
+        .andExpect(jsonPath("$.message", containsString("Product stock must be positive")));
   }
 
   @Test
