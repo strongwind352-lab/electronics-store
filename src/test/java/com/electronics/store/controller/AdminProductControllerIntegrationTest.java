@@ -173,8 +173,10 @@ class AdminProductControllerIntegrationTest {
   @DisplayName("GET /admin/products/ should return paginated products with admin role")
   @WithMockUser(roles = "ADMIN")
   void getAllProducts_shouldReturnPaginatedProducts() throws Exception {
+    // Arrange
     productRepository.saveAll(List.of(laptop, mouse, keyboard));
 
+    // Act - Assert - 1
     mockMvc
         .perform(
             get("/admin/products")
@@ -192,6 +194,7 @@ class AdminProductControllerIntegrationTest {
         .andExpect(jsonPath("$.content[0].price").value(BigDecimal.valueOf(1200.00)))
         .andExpect(jsonPath("$.content[0].stock").value(10));
 
+    // Act - Assert - 2
     mockMvc
         .perform(
             get("/admin/products")
@@ -213,5 +216,12 @@ class AdminProductControllerIntegrationTest {
         .andExpect(jsonPath("$.content[1].category").value(ELECTRONICS.toString()))
         .andExpect(jsonPath("$.content[1].price").value(BigDecimal.valueOf(25.00)))
         .andExpect(jsonPath("$.content[1].stock").value(50));
+  }
+
+  @Test
+  @DisplayName("GET /admin/products - Should return 403 Forbidden for non -admin user")
+  @WithMockUser(roles = "DUMMY")
+  void getAllProducts_shouldReturnForbiddenForNonAdmin() throws Exception {
+    mockMvc.perform(get("/admin/products")).andExpect(status().isForbidden());
   }
 }
