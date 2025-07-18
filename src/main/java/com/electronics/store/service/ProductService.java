@@ -1,5 +1,6 @@
 package com.electronics.store.service;
 
+import com.electronics.store.exception.ProductNotFoundException;
 import com.electronics.store.model.Product;
 import com.electronics.store.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,9 @@ public class ProductService {
   }
 
   public void removeProduct(Long productId) {
+    if (!productRepository.existsById(productId)) {
+      throw new ProductNotFoundException(String.format("Product with ID %s not found.", productId));
+    }
     productRepository.deleteById(productId);
   }
 }

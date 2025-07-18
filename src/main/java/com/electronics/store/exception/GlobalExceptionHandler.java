@@ -13,6 +13,14 @@ import org.springframework.web.context.request.WebRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+  @ExceptionHandler(ProductNotFoundException.class)
+  public ResponseEntity<Object> handleProductNotFoundException(
+      ProductNotFoundException ex, WebRequest request) {
+    Map<String, Object> body =
+        createErrorBody(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage(), request);
+    return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+  }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, WebRequest request) {
         // Collect all validation errors into a single string for clarity.
