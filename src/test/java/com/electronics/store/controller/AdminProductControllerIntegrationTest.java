@@ -68,5 +68,26 @@ class AdminProductControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName(
+      "POST /admin/products - Should return 403 Forbidden for non-admin user")
+  @WithMockUser(roles = "DUMMY")
+  void createProduct_shouldReturnForbiddenForNonAdmin() throws Exception {
+    // Arrange
+    ProductCreateRequest productCreateRequest = new ProductCreateRequest();
+    productCreateRequest.setName(laptop.getName());
+    productCreateRequest.setCategory(laptop.getCategory());
+    productCreateRequest.setPrice(laptop.getPrice());
+    productCreateRequest.setStock(laptop.getStock());
+
+    // Act and Assert
+    mockMvc
+        .perform(
+            post("/admin/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(productCreateRequest)))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void deleteProduct() {}
 }
