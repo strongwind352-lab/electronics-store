@@ -224,4 +224,14 @@ class AdminProductControllerIntegrationTest {
   void getAllProducts_shouldReturnForbiddenForNonAdmin() throws Exception {
     mockMvc.perform(get("/admin/products")).andExpect(status().isForbidden());
   }
+
+  @Test
+  @DisplayName("GET /admin/products - Should return empty content if no products exist - ADMIN")
+  @WithMockUser(roles = "ADMIN")
+  void getAllProducts_shouldReturnEmptyContentIfNoProductsExist() throws Exception {
+    mockMvc
+        .perform(get("/admin/products").param("size", "10").param("page", "0"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isEmpty());
+  }
 }
