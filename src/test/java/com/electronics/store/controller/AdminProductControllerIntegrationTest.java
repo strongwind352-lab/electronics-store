@@ -2,7 +2,9 @@ package com.electronics.store.controller;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,6 +40,7 @@ class AdminProductControllerIntegrationTest {
 
   @BeforeEach
   void setUp() {
+    productRepository.deleteAll();
     laptop =
         new Product(
             null, "Laptop Pro", ProductCategory.ELECTRONICS, BigDecimal.valueOf(1200.00), 10);
@@ -129,6 +132,16 @@ class AdminProductControllerIntegrationTest {
     mockMvc
         .perform(delete("/admin/products/{productId}", savedProduct.getId()))
         .andExpect(status().isNoContent());
+
+    // verify that database is empty since one last element is deleted
+    mockMvc
+        .perform(
+            get("/admin/products")
+                .param("page", "0")
+                .param("size", "10")
+                .with(user("admin").roles("ADMIN")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isEmpty());
   }
 
   @Test
