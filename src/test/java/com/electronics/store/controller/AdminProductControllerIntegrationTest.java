@@ -229,6 +229,9 @@ class AdminProductControllerIntegrationTest {
   @DisplayName("GET /admin/products - Should return empty content if no products exist - ADMIN")
   @WithMockUser(roles = "ADMIN")
   void getAllProducts_shouldReturnEmptyContentIfNoProductsExist() throws Exception {
+    // Arrange : db is already empty since productRepository.deleteAll() is called in @BeforeEach setup()
+
+    // Assert
     mockMvc
         .perform(get("/admin/products").param("size", "10").param("page", "0"))
         .andExpect(status().isOk())
