@@ -1,20 +1,62 @@
 package com.electronics.store.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.electronics.store.dto.ProductCreateRequest;
+import com.electronics.store.model.Product;
+import com.electronics.store.model.ProductCategory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
 class AdminProductControllerIntegrationTest {
+  @Autowired MockMvc mockMvc;
+
+  @Autowired ObjectMapper objectMapper;
+
+  private Product laptop;
 
   @BeforeEach
-  void setUp() {}
+  void setUp() {
+    laptop =
+        new Product(
+            null, "Laptop Pro", ProductCategory.ELECTRONICS, BigDecimal.valueOf(1200.00), 10);
+  }
 
   @Test
   void getAllProducts() {}
 
   @Test
-  void createProduct() {}
+  @WithMockUser(roles = "ADMIN")
+  void createProduct_shouldReturnCreatedProduct() throws Exception {
+    // Arrange
+    ProductCreateRequest productCreateRequest = new ProductCreateRequest();
+    productCreateRequest.setName(laptop.getName());
+    productCreateRequest.setCategory(laptop.getCategory());
+    productCreateRequest.setPrice(laptop.getPrice());
+    productCreateRequest.setStock(laptop.getStock());
+
+    // Act and Assert
+    mockMvc
+        .perform(
+            post("/admin/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(productCreateRequest)))
+        .andExpect(status().isCreated());
+  }
 
   @Test
   void deleteProduct() {}
