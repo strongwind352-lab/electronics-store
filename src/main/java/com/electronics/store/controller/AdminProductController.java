@@ -6,6 +6,7 @@ import com.electronics.store.mapper.ProductMapper;
 import com.electronics.store.mapper.ProductResponseMapper;
 import com.electronics.store.model.Product;
 import com.electronics.store.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,7 +43,8 @@ public class AdminProductController {
   }
 
   @PostMapping
-  public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductCreateRequest request) {
+  public ResponseEntity<ProductResponse> createProduct(
+      @Valid @RequestBody ProductCreateRequest request) {
     Product product = productMapper.toEntity(request);
     Product createdProduct = productService.createProduct(product);
     ProductResponse createdProductResponse = productResponseMapper.toDto(createdProduct);

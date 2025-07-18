@@ -89,5 +89,26 @@ class AdminProductControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName(
+      "POST /admin/products - Should return bad request for invalid request body data - ADMIN")
+  @WithMockUser(roles = "ADMIN")
+  void createProduct_shouldReturnBadRequestForInvalidRequestBodyData() throws Exception {
+    // Arrange
+    ProductCreateRequest invalidProductCreateRequest = new ProductCreateRequest();
+    invalidProductCreateRequest.setName("");
+    invalidProductCreateRequest.setCategory(ProductCategory.ELECTRONICS);
+    invalidProductCreateRequest.setPrice(BigDecimal.valueOf(-20));
+    invalidProductCreateRequest.setStock(-5);
+
+    // Act and Assert
+    mockMvc
+        .perform(
+            post("/admin/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidProductCreateRequest)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void deleteProduct() {}
 }
