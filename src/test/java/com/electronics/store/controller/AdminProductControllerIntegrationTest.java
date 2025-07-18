@@ -2,6 +2,7 @@ package com.electronics.store.controller;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -9,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.electronics.store.dto.ProductCreateRequest;
 import com.electronics.store.model.Product;
 import com.electronics.store.model.ProductCategory;
+import com.electronics.store.repository.ProductRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +31,8 @@ class AdminProductControllerIntegrationTest {
   @Autowired MockMvc mockMvc;
 
   @Autowired ObjectMapper objectMapper;
+
+  @Autowired ProductRepository productRepository;
 
   private Product laptop;
 
@@ -112,6 +116,19 @@ class AdminProductControllerIntegrationTest {
         .andExpect(jsonPath("$.message", containsString("name: Product name must not be blank")))
         .andExpect(jsonPath("$.message", containsString("price: Product price must be greater than 0")))
         .andExpect(jsonPath("$.message", containsString("Product stock must be positive")));
+  }
+
+  @Test
+  @DisplayName("DELETE /admin/products/{productId} - Should return no content 204")
+  @WithMockUser(roles = "ADMIN")
+  void deleteProduct_shouldReturnNoContent() throws Exception {
+    // Arrange
+    Product savedProduct = productRepository.save(laptop);
+
+    // Act and assert
+    mockMvc
+        .perform(delete("/admin/products/{productId}", savedProduct.getId()))
+        .andExpect(status().isNoContent());
   }
 
   @Test
