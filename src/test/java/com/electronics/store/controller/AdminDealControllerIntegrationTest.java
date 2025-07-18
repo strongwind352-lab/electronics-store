@@ -86,4 +86,22 @@ public class AdminDealControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(newDeal)))
         .andExpect(status().isForbidden());
   }
+
+  @Test
+  @DisplayName(
+      "createDeal - should return not found if product to add deal to does not exist - admin")
+  @WithMockUser(roles = "ADMIN")
+  void createDeal_shouldReturnNotFoundIfProductDoesNotExist() throws Exception {
+    // Arrange data
+    Deal newDeal = new Deal(null, 777L, DealType.BOGO50, LocalDateTime.now().plusDays(7));
+
+    // Act and assert
+    mockMvc
+        .perform(
+            post("/admin/deals")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newDeal)))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Product with id: 777 does not exist"));
+  }
 }
