@@ -2,6 +2,7 @@ package com.electronics.store.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.electronics.store.dto.ProductCreateRequest;
@@ -10,6 +11,7 @@ import com.electronics.store.model.ProductCategory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -40,6 +42,8 @@ class AdminProductControllerIntegrationTest {
   void getAllProducts() {}
 
   @Test
+  @DisplayName(
+      "POST /admin/products - Should return created product and 201 created status code (ADMIN role)")
   @WithMockUser(roles = "ADMIN")
   void createProduct_shouldReturnCreatedProduct() throws Exception {
     // Arrange
@@ -55,7 +59,12 @@ class AdminProductControllerIntegrationTest {
             post("/admin/products")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(productCreateRequest)))
-        .andExpect(status().isCreated());
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").isNumber())
+        .andExpect(jsonPath("$.name").value("Laptop Pro"))
+        .andExpect(jsonPath("$.category").value("ELECTRONICS"))
+        .andExpect(jsonPath("$.price").value(BigDecimal.valueOf(1200.00)))
+        .andExpect(jsonPath("$.stock").value(BigDecimal.valueOf(10)));
   }
 
   @Test
