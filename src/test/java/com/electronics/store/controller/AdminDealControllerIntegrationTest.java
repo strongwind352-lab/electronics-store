@@ -70,4 +70,20 @@ public class AdminDealControllerIntegrationTest {
         .andExpect(jsonPath("$.dealType").value(DealType.BOGO50.name()))
         .andExpect(jsonPath("$.active").value(true));
   }
+
+  @Test
+  @DisplayName("createDeal - should return forbidden for non - admin")
+  @WithMockUser(roles = "DUMMY")
+  void createDeal_shouldReturnForbiddenForNonAdmin() throws Exception {
+    // Arrange data
+    Deal newDeal = new Deal(null, laptop.getId(), DealType.BOGO50, LocalDateTime.now().plusDays(7));
+
+    // Act and assert
+    mockMvc
+        .perform(
+            post("/admin/deals")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newDeal)))
+        .andExpect(status().isForbidden());
+  }
 }
