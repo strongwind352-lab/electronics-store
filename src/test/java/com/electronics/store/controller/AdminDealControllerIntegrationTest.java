@@ -67,6 +67,7 @@ public class AdminDealControllerIntegrationTest {
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").isNumber())
         .andExpect(jsonPath("$.productId").value(laptop.getId()))
-        .andExpect(jsonPath("$.dealType").value(DealType.BOGO50.name()));
+        .andExpect(jsonPath("$.dealType").value(DealType.BOGO50.name()))
+        .andExpect(jsonPath("$.active").value(true));
   }
 }

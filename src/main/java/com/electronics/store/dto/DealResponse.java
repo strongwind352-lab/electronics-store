@@ -12,4 +12,5 @@ public class DealResponse {
   Long productId;
   DealType dealType;
   LocalDateTime expirationDate;
+  boolean active;
 }
