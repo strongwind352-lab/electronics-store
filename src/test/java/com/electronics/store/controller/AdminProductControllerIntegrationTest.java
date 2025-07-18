@@ -145,5 +145,13 @@ class AdminProductControllerIntegrationTest {
   }
 
   @Test
-  void deleteProduct() {}
+  @DisplayName(
+      "DELETE /admin/products/{productId} - Should return 403 Forbidden if user is not an admin")
+  @WithMockUser(roles = "DUMMY")
+  void deleteProduct_shouldReturnForbiddenForNonAdmin() throws Exception {
+    Product savedProduct = productRepository.save(laptop);
+    mockMvc
+        .perform(delete("/admin/products/{productId}", savedProduct.getId()))
+        .andExpect(status().isForbidden());
+  }
 }
