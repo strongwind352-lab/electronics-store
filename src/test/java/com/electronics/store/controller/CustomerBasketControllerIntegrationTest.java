@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class CustomerBasketControllerIntegrationTest {
   private static final String CUSTOMER_USER_ID = "customer";
+  private static final String ADMIN_USER_ID = "admin";
   @Autowired ObjectMapper objectMapper;
   @Autowired ProductRepository productRepository;
   private Product laptop;
@@ -320,5 +321,15 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(
             jsonPath("$.items[?(@.productId == " + mouse.getId() + ")].priceAfterDeal")
                 .value(25.00));
+  }
+
+  @Test
+  @DisplayName(
+          "GET /customer/basket/receipt - should return forbidden 403 for non customer role")
+  @WithMockUser(username = CUSTOMER_USER_ID, roles = "ADMIN")
+  void getReceipt_shouldReturnForbiddenForNonCustomer() throws Exception {
+    mockMvc
+            .perform(get("/customer/basket/receipt"))
+            .andExpect(status().isForbidden());
   }
 }
