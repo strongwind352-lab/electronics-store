@@ -86,4 +86,32 @@ class CustomerBasketControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(addRequest)))
         .andExpect(status().isForbidden());
   }
+
+  @Test
+  @DisplayName(
+      "POST /customer/basket/add - should return bad request for insufficient stock - CUSTOMER role")
+  @WithMockUser(username = "customer", roles = "CUSTOMER")
+  void addProductToBasket_shouldReturnBadRequestForInsufficientStock() throws Exception {
+    // Arrange
+    BasketUpdateRequest addRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(999).build();
+
+    // Act & Assert 1 - POST to add product to basket
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(addRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.message")
+                .value("Insufficient stock for product ID 48. Available : 10 - Requested : 999"));
+
+    // Act @ Assert 2 - Verify that stock is unchanged
+    mockMvc
+        .perform(
+            get("/admin/products/{productId}", laptop.getId()).with(user("admin").roles("ADMIN")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.stock").value(10));
+  }
 }
