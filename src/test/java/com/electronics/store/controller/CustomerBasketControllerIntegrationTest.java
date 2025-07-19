@@ -124,7 +124,7 @@ class CustomerBasketControllerIntegrationTest {
     BasketUpdateRequest addRequest =
         BasketUpdateRequest.builder().productId(12345L).quantity(1).build();
 
-    // Act & Assert 1 - POST to add product to basket
+    // Act & Assert 1 - POST to add non-existent product to basket
     mockMvc
         .perform(
             post("/customer/basket/add")
@@ -132,5 +132,36 @@ class CustomerBasketControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(addRequest)))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value("Product with ID 12345 not found."));
+  }
+
+  @Test
+  @DisplayName(
+      "POST /customer/basket/remove - should succeed and increment stock partially - CUSTOMER role")
+  @WithMockUser(username = "customer", roles = "CUSTOMER")
+  void removeProductFromBasket_shouldSucceedAndIncrementStockPartially() throws Exception {
+    // Arrange
+    BasketUpdateRequest basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(5).build();
+
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isOk());
+    // now we have 5 laptops in the basket
+
+    // Arrange : now we call /customer/basket/remove and remove 2 laptops from the basket
+    basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(2).build();
+    mockMvc
+        .perform(
+            post("/customer/basket/remove")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(1)))
+        .andExpect(jsonPath("$.items[0].productId").value(laptop.getId()))
+        .andExpect(jsonPath("$.items[0].quantity").value(3)); // 5 - 2 = 3
   }
 }

@@ -84,4 +84,10 @@ public class ProductService {
     product.decrementStock(quantity);
     productRepository.save(product);
   }
+
+  public void incrementProductStock(Long productId, int quantity) {
+    Product product = findProductById(productId);
+    product.incrementStock(quantity);
+    productRepository.save(product);
+  }
 }

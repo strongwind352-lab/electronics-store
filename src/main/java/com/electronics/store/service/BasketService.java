@@ -41,4 +41,21 @@ public class BasketService {
         .findByUserId(userId)
         .orElseGet(() -> basketRepository.save(new Basket(userId)));
   }
+
+  public Basket removeProductFromBasket(Long productId, int quantity) {
+    Basket basket = getOrUpdateBasket();
+    productService.incrementProductStock(productId, quantity);
+    Optional<BasketItem> existingBasketItem =
+        basket.getItems().stream()
+            .filter(item -> item.getProductId().equals(productId))
+            .findFirst();
+    if (existingBasketItem.isPresent()) {
+      if (existingBasketItem.get().getQuantity() <= quantity) {
+        basket.getItems().remove(existingBasketItem.get());
+      } else {
+        existingBasketItem.get().setQuantity(existingBasketItem.get().getQuantity() - quantity);
+      }
+    }
+    return basketRepository.save(basket);
+  }
 }

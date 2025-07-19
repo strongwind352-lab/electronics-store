@@ -28,4 +28,12 @@ public class CustomerBasketController {
     Basket basket = basketService.addProductToBasket(request.getProductId(), request.getQuantity());
     return new ResponseEntity<>(basket, HttpStatus.OK);
   }
+
+  @PostMapping("/remove")
+  public ResponseEntity<Basket> removeProductFromBasket(
+      @Valid @RequestBody BasketUpdateRequest request) {
+    Basket basket =
+        basketService.removeProductFromBasket(request.getProductId(), request.getQuantity());
+    return new ResponseEntity<>(basket, HttpStatus.OK);
+  }
 }
