@@ -313,6 +313,12 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items", hasSize(2)))
         .andExpect(jsonPath("$.dealsApplied").isEmpty())
-        .andExpect(jsonPath("$.totalPrice").value(BigDecimal.valueOf(1250.0)));
+        .andExpect(jsonPath("$.totalPrice").value(BigDecimal.valueOf(1250.0)))
+        .andExpect(
+            jsonPath("$.items[?(@.productId == " + laptop.getId() + ")].priceAfterDeal")
+                .value(1200.0))
+        .andExpect(
+            jsonPath("$.items[?(@.productId == " + mouse.getId() + ")].priceAfterDeal")
+                .value(25.00));
   }
 }
