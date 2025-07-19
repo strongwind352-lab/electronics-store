@@ -1,10 +1,9 @@
 package com.electronics.store.dto;
 
 import com.electronics.store.model.ProductCategory;
+import java.math.BigDecimal;
 import lombok.Builder;
 import lombok.Value;
-
-import java.math.BigDecimal;
 
 @Value
 @Builder
@@ -14,4 +13,5 @@ public class ProductResponse {
   ProductCategory category;
   BigDecimal price;
   int stock;
+  boolean available;
 }
