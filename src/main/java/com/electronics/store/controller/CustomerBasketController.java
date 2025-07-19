@@ -2,6 +2,7 @@ package com.electronics.store.controller;
 
 import com.electronics.store.dto.BasketUpdateRequest;
 import com.electronics.store.model.Basket;
+import com.electronics.store.model.Receipt;
 import com.electronics.store.service.BasketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,5 +37,12 @@ public class CustomerBasketController {
     Basket basket =
         basketService.removeProductFromBasket(request.getProductId(), request.getQuantity());
     return new ResponseEntity<>(basket, HttpStatus.OK);
+  }
+
+  @GetMapping("/receipt")
+  public ResponseEntity<Receipt> getReceipt() {
+    //    Basket basket =
+    Receipt receipt = basketService.calculateReceipt();
+    return new ResponseEntity<>(receipt, HttpStatus.OK);
   }
 }

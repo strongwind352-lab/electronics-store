@@ -31,7 +31,8 @@ class CustomerBasketControllerIntegrationTest {
   private static final String CUSTOMER_USER_ID = "customer";
   @Autowired ObjectMapper objectMapper;
   @Autowired ProductRepository productRepository;
-  Product laptop;
+  private Product laptop;
+  private Product mouse;
   @Autowired private MockMvc mockMvc;
 
   @BeforeEach
@@ -41,6 +42,14 @@ class CustomerBasketControllerIntegrationTest {
         productRepository.save(
             new Product(
                 null, "Laptop Pro", ProductCategory.ELECTRONICS, BigDecimal.valueOf(1200.00), 10));
+    mouse =
+        productRepository.save(
+            new Product(
+                null,
+                "Wireless Mouse",
+                ProductCategory.ELECTRONICS,
+                BigDecimal.valueOf(25.00),
+                50));
   }
 
   @Test
@@ -272,5 +281,38 @@ class CustomerBasketControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(basketUpdateRequest)))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value("Product with ID 777 not found."));
+  }
+
+  @Test
+  @DisplayName(
+      "GET /customer/basket/receipt - should calculate correctly with no deals - CUSTOMER role")
+  @WithMockUser(username = CUSTOMER_USER_ID, roles = "CUSTOMER")
+  void getReceipt_shouldCalculateCorrectlyWithNoDeals() throws Exception {
+    // Arrange: add 1 laptop and 2 mouses to the basket
+    BasketUpdateRequest basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(1).build();
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isOk());
+
+    basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(mouse.getId()).quantity(2).build();
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isOk());
+
+    // Act & Assert
+    mockMvc
+        .perform(get("/customer/basket/receipt"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(2)))
+        .andExpect(jsonPath("$.dealsApplied").isEmpty())
+        .andExpect(jsonPath("$.totalPrice").value(BigDecimal.valueOf(1250.0)));
   }
 }
