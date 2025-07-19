@@ -15,7 +15,7 @@ public class Basket {
 
   private String userId;
 
-//  @ElementCollection(fetch = FetchType.EAGER)
-//  @CollectionTable(name = "basket_items", joinColumns = @JoinColumn(name = "basket_id"))
-//  private List<BasketItem> items;
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "basket_items", joinColumns = @JoinColumn(name = "basket_id"))
+  private List<BasketItem> items;
 }
