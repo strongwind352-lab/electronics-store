@@ -40,7 +40,13 @@ public class SecurityConfig {
             .password(passwordEncoder.encode("Admin@123"))
             .roles("ADMIN")
             .build();
-    return new InMemoryUserDetailsManager(admin);
+    UserDetails customer =
+        User.builder()
+            .username("customer")
+            .password(passwordEncoder.encode("Customer@123"))
+            .roles("CUSTOMER=")
+            .build();
+    return new InMemoryUserDetailsManager(admin, customer);
   }
 
   @Bean
