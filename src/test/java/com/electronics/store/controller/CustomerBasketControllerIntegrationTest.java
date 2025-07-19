@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @Transactional
 class CustomerBasketControllerIntegrationTest {
-  private static final String TEST_USER_ID = "customer";
+  private static final String CUSTOMER_USER_ID = "customer";
   @Autowired ObjectMapper objectMapper;
   @Autowired ProductRepository productRepository;
   Product laptop;
@@ -45,7 +45,7 @@ class CustomerBasketControllerIntegrationTest {
 
   @Test
   @DisplayName("POST /customer/basket/add - should succeed and and decrement stock - CUSTOMER ROLE")
-  @WithMockUser(username = TEST_USER_ID, roles = "CUSTOMER")
+  @WithMockUser(username = CUSTOMER_USER_ID, roles = "CUSTOMER")
   void addProductToBasket_shouldSucceedAndDecrementStock() throws Exception {
     // Arrange
     BasketUpdateRequest addRequest =
@@ -61,7 +61,7 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(jsonPath("$.items", hasSize(1)))
         .andExpect(jsonPath("$.items[0].productId").value(laptop.getId()))
         .andExpect(jsonPath("$.items[0].quantity").value(2))
-        .andExpect(jsonPath("$.userId").value(TEST_USER_ID));
+        .andExpect(jsonPath("$.userId").value(CUSTOMER_USER_ID));
 
     // Act & Assert 2
     mockMvc
@@ -175,6 +175,33 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(jsonPath("$.stock").value(7));
   }
 
+  @Test
+  @DisplayName("POST /customer/basket/remove - should return forbidden 403 for non customer")
+  @WithMockUser(username = "admin", roles = "ADMIN")
+  void removeProductFromBasket_shouldReturnForbiddenForNonCustomer() throws Exception {
+    // Arrange
+    BasketUpdateRequest basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(5).build();
 
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest))
+                .with(user(CUSTOMER_USER_ID).roles("CUSTOMER")))
+        .andExpect(status().isOk());
+    // now we have 5 laptops in the basket
 
+    // Arrange : now we call /customer/basket/remove and remove 2 laptops from the basket
+    basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(2).build();
+
+    // Act & Assert : verify that returned basket contains 3 laptops
+    mockMvc
+        .perform(
+            post("/customer/basket/remove")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isForbidden());
+  }
 }
