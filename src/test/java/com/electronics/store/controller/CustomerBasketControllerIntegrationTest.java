@@ -154,6 +154,8 @@ class CustomerBasketControllerIntegrationTest {
     // Arrange : now we call /customer/basket/remove and remove 2 laptops from the basket
     basketUpdateRequest =
         BasketUpdateRequest.builder().productId(laptop.getId()).quantity(2).build();
+
+    // Act & Assert : verify that returned basket contains 3 laptops
     mockMvc
         .perform(
             post("/customer/basket/remove")
@@ -163,5 +165,16 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(jsonPath("$.items", hasSize(1)))
         .andExpect(jsonPath("$.items[0].productId").value(laptop.getId()))
         .andExpect(jsonPath("$.items[0].quantity").value(3)); // 5 - 2 = 3
+
+    // Act & Assert : verify that product stock is incremented by 2 since 2 laptops are removed
+    // above
+    mockMvc
+        .perform(
+            get("/admin/products/{productId}", laptop.getId()).with(user("admin").roles("ADMIN")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.stock").value(7));
   }
+
+
+
 }
