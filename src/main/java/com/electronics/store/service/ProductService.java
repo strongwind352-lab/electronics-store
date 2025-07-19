@@ -2,10 +2,13 @@ package com.electronics.store.service;
 
 import com.electronics.store.exception.ProductNotFoundException;
 import com.electronics.store.model.Product;
+import com.electronics.store.model.ProductCategory;
 import com.electronics.store.repository.ProductRepository;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,5 +29,44 @@ public class ProductService {
       throw new ProductNotFoundException(String.format("Product with ID %s not found.", productId));
     }
     productRepository.deleteById(productId);
+  }
+
+  public Page<Product> filterProducts(
+      ProductCategory productCategory,
+      BigDecimal minPrice,
+      BigDecimal maxPrice,
+      Boolean available,
+      Pageable pageable) {
+    Specification<Product> spec = (root, query, criteriaBuilder) -> null;
+    if (productCategory != null) {
+      spec =
+          spec.and(
+              (root, query, criteriaBuilder) ->
+                  criteriaBuilder.equal(root.get("productCategory"), productCategory));
+    }
+    if (minPrice != null && maxPrice != null) {
+      spec =
+          spec.and(
+              ((root, query, criteriaBuilder) ->
+                  criteriaBuilder.between(root.get("price"), minPrice, maxPrice)));
+    } else if (minPrice != null) {
+      spec =
+          spec.and(
+              ((root, query, criteriaBuilder) ->
+                  criteriaBuilder.greaterThanOrEqualTo(root.get("price"), minPrice)));
+    } else if (maxPrice != null) {
+      spec =
+          spec.and(
+              ((root, query, criteriaBuilder) ->
+                  criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice)));
+    }
+
+    if (available != null && available) {
+      spec =
+          spec.and(
+              ((root, query, criteriaBuilder) ->
+                  criteriaBuilder.greaterThanOrEqualTo(root.get("stock"), 0)));
+    }
+    return productRepository.findAll(spec, pageable);
   }
 }
