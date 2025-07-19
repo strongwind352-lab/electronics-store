@@ -104,4 +104,23 @@ public class AdminDealControllerIntegrationTest {
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value("Product with id: 777 does not exist"));
   }
+
+  @Test
+  @DisplayName("createDeal - should return bad request for invalid deal request body - admin")
+  @WithMockUser(roles = "ADMIN")
+  void createDeal_shouldReturnBadRequestForInvalidDealRequestBody() throws Exception {
+    // Arrange data
+    Deal newDeal = new Deal(null, null, DealType.BOGO50, LocalDateTime.now().plusDays(7));
+
+    // Act and assert
+    mockMvc
+        .perform(
+            post("/admin/deals")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newDeal)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("Validation Error"))
+        .andExpect(
+            jsonPath("$.message").value("productId: Please specify productId to add deal to"));
+  }
 }

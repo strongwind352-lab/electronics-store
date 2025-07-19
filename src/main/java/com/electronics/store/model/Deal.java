@@ -1,6 +1,7 @@
 package com.electronics.store.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class Deal {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @NotNull(message = "Please specify productId to add deal to")
   private Long productId;
 
   @Enumerated(EnumType.STRING)

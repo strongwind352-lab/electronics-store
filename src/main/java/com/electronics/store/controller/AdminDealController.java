@@ -4,6 +4,7 @@ import com.electronics.store.dto.DealResponse;
 import com.electronics.store.mapper.DealResponseMapper;
 import com.electronics.store.model.Deal;
 import com.electronics.store.service.DealService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class AdminDealController {
   private final DealResponseMapper dealResponseMapper;
 
   @PostMapping
-  public ResponseEntity<DealResponse> createDeal(@RequestBody Deal deal) {
+  public ResponseEntity<DealResponse> createDeal(@Valid @RequestBody Deal deal) {
     Deal createdDeal = dealService.createDeal(deal);
     DealResponse dealResponse = dealResponseMapper.toDto(createdDeal);
     return new ResponseEntity<>(dealResponse, HttpStatus.CREATED);
