@@ -204,4 +204,43 @@ class CustomerBasketControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(basketUpdateRequest)))
         .andExpect(status().isForbidden());
   }
+
+  @Test
+  @DisplayName(
+      "POST /customer/basket/remove - should remove product entirely from basket and increment all stock - CUSTOMER role")
+  @WithMockUser(username = CUSTOMER_USER_ID, roles = "CUSTOMER")
+  void removeProductFromBasket_shouldSucceedAndIncrementStockEntirely() throws Exception {
+    // Arrange
+    BasketUpdateRequest basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(3).build();
+
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isOk());
+    // now we have 3 laptops in the basket
+
+    // Arrange : now we call /customer/basket/remove and remove 3 laptops from the basket
+    basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(3).build();
+
+    // Act & Assert : verify that returned basket is empty
+    mockMvc
+        .perform(
+            post("/customer/basket/remove")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items").isEmpty());
+
+    // Act & Assert : verify that product stock is incremented fully
+    // above
+    mockMvc
+        .perform(
+            get("/admin/products/{productId}", laptop.getId()).with(user("admin").roles("ADMIN")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.stock").value(10));
+  }
 }
