@@ -126,6 +126,27 @@ class CustomerProductControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName(
+      "GET /customer/products?category=ELECTRONICS&available=true&minPrice=100&maxPrice=1500 - Should filter by all criteria - no login")
+  void getFilteredProducts_shouldFilterByByAllCriteria() throws Exception {
+
+    // Act & Assert
+    mockMvc
+        .perform(
+            get("/customer/products")
+                .param("available", "true")
+                .param("category", "ELECTRONICS")
+                .param("minPrice", "100")
+                .param("maxPrice", "1500"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(2)))
+        .andExpect(jsonPath("$.totalElements").value(2))
+        .andExpect(jsonPath("$.content[0].available").value(true))
+        .andExpect(
+            jsonPath("$.content[*].name", containsInAnyOrder("Laptop Pro", "Android Tablet")));
+  }
+
+  @Test
   void getFilteredProducts() {
 
   }
