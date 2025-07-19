@@ -1,16 +1,73 @@
 package com.electronics.store.controller;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.electronics.store.dto.BasketUpdateRequest;
+import com.electronics.store.model.Product;
+import com.electronics.store.model.ProductCategory;
+import com.electronics.store.repository.ProductRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
 class CustomerBasketControllerIntegrationTest {
+  @Autowired ObjectMapper objectMapper;
+  @Autowired ProductRepository productRepository;
+  Product laptop;
+  @Autowired private MockMvc mockMvc;
+
+  private static final String TEST_USER_ID = "customer";
 
     @BeforeEach
     void setUp() {
+    productRepository.deleteAll();
+    laptop =
+        productRepository.save(
+            new Product(
+                null, "Laptop Pro", ProductCategory.ELECTRONICS, BigDecimal.valueOf(1200.00), 10));
       }
 
-    @Test
-    void addProductToBasket() {
+  @Test
+  @DisplayName("POST /customer/basket/add - should succeed and and decrement stock - CUSTOMER ROLE")
+  @WithMockUser(username = TEST_USER_ID, roles = "CUSTOMER")
+  void addProductToBasket_shouldSucceedAndDecrementStock() throws Exception {
+    // Arrange
+    BasketUpdateRequest addRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(2).build();
+
+    // Act & Assert
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(addRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(1)))
+        .andExpect(jsonPath("$.items[0].productId").value(laptop.getId()))
+        .andExpect(jsonPath("$.items[0].quantity").value(2))
+        .andExpect(jsonPath("$.userId").value(TEST_USER_ID));
+
+    // Act & Assert 2
+    mockMvc
+        .perform(get("/admin/products", laptop.getId()).with(user("admin").roles("ADMIN")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].stock").value(8));
       }
 }

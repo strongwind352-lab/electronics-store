@@ -13,6 +13,14 @@ import org.springframework.web.context.request.WebRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+  @ExceptionHandler(InsufficientStockException.class)
+  public ResponseEntity<Object> handleInsufficientStockException(
+      InsufficientStockException ex, WebRequest request) {
+    Map<String, Object> body =
+        createErrorBody(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(), request);
+    return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+  }
+
   @ExceptionHandler(ProductNotFoundException.class)
   public ResponseEntity<Object> handleProductNotFoundException(
       ProductNotFoundException ex, WebRequest request) {

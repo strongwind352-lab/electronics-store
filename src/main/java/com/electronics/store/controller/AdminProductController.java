@@ -44,6 +44,12 @@ public class AdminProductController {
     return new ResponseEntity<>(productResponses, HttpStatus.OK);
   }
 
+  @GetMapping("/{productId}")
+  public ResponseEntity<ProductResponse> getProduct(@PathVariable Long productId) {
+    Product foundProduct = productService.findProductById(productId);
+    return new ResponseEntity<>(productResponseMapper.toDto(foundProduct), HttpStatus.OK);
+  }
+
   @PostMapping
   public ResponseEntity<ProductResponse> createProduct(
       @Valid @RequestBody ProductCreateRequest request) {

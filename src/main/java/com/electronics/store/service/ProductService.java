@@ -69,4 +69,19 @@ public class ProductService {
     }
     return productRepository.findAll(spec, pageable);
   }
+
+  public Product findProductById(Long productId) {
+    return productRepository
+        .findById(productId)
+        .orElseThrow(
+            () ->
+                new ProductNotFoundException(
+                    String.format("Product with ID %s not found.", productId)));
+  }
+
+  public void decrementProductStock(Long productId, int quantity) {
+    Product product = findProductById(productId);
+    product.decrementStock(quantity);
+    productRepository.save(product);
+  }
 }

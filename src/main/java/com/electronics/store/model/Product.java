@@ -1,5 +1,6 @@
 package com.electronics.store.model;
 
+import com.electronics.store.exception.InsufficientStockException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -35,4 +36,14 @@ public class Product {
     public boolean isAvailable() {
         return this.stock >0;
     }
+
+  public void decrementStock(int quantity) {
+    if (stock < quantity) {
+      throw new InsufficientStockException(
+          String.format(
+              "Insufficient stock for product ID %s. Available : %s - Requested : %s",
+              id, stock, quantity));
+    }
+    this.stock -= quantity;
+  }
 }
