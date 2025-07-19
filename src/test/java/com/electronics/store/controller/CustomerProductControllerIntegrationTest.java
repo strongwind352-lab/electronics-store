@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -70,6 +71,23 @@ class CustomerProductControllerIntegrationTest {
                 "$.content[*].name",
                 containsInAnyOrder(
                     "Laptop Pro", "Wireless Mouse", "Mechanical Keyboard", "Android Tablet")));
+  }
+
+  @Test
+  @DisplayName(
+      "GET /customer/products?minPrice=50&maxPrice=100 - should return all products with price between minPrice and maxPrice - no login")
+  void getFilteredProducts_shouldFilterByPriceRange() throws Exception {
+
+        // Act & Assert
+    mockMvc
+        .perform(get("/customer/products").param("minPrice", "50").param("maxPrice", "100"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.content[0].available").isBoolean())
+        .andExpect(jsonPath("$.content[0].name").value("Mechanical Keyboard"))
+        .andExpect(jsonPath("$.content[0].category").value("ELECTRONICS"))
+        .andExpect(jsonPath("$.content[0].available").isBoolean());
   }
 
   @Test
