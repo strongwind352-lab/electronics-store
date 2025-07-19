@@ -92,7 +92,6 @@ class CustomerProductControllerIntegrationTest {
   @Test
   @DisplayName("GET /customer/products?available=true - no login")
   void getFilteredProducts_shouldFilterByAvailability() throws Exception {
-
     // Act & Assert
     mockMvc
         .perform(get("/customer/products").param("available", "true"))
@@ -105,6 +104,25 @@ class CustomerProductControllerIntegrationTest {
                 "$.content[*].name",
                 containsInAnyOrder(
                     "Laptop Pro", "Wireless Mouse", "Java Programming", "Android Tablet")));
+  }
+
+  @Test
+  @DisplayName(
+      "GET /customer/products?category=ELECTRONICS&available=true - Should filter by category and availability - no login")
+  void getFilteredProducts_shouldFilterByCategoryAndAvailability() throws Exception {
+
+    // Act & Assert
+    mockMvc
+        .perform(
+            get("/customer/products").param("available", "true").param("category", "ELECTRONICS"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(3)))
+        .andExpect(jsonPath("$.totalElements").value(3))
+        .andExpect(jsonPath("$.content[0].available").value(true))
+        .andExpect(
+            jsonPath(
+                "$.content[*].name",
+                containsInAnyOrder("Laptop Pro", "Wireless Mouse", "Android Tablet")));
   }
 
   @Test

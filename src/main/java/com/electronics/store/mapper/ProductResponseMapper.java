@@ -8,5 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ProductResponseMapper {
 
+  @Mapping(source = "available", target = "available")
   ProductResponse toDto(Product product);
 }
