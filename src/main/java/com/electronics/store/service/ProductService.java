@@ -65,7 +65,7 @@ public class ProductService {
       spec =
           spec.and(
               ((root, query, criteriaBuilder) ->
-                  criteriaBuilder.greaterThanOrEqualTo(root.get("stock"), 0)));
+                  criteriaBuilder.greaterThan(root.get("stock"), 0)));
     }
     return productRepository.findAll(spec, pageable);
   }

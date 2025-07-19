@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -88,6 +87,24 @@ class CustomerProductControllerIntegrationTest {
         .andExpect(jsonPath("$.content[0].name").value("Mechanical Keyboard"))
         .andExpect(jsonPath("$.content[0].category").value("ELECTRONICS"))
         .andExpect(jsonPath("$.content[0].available").isBoolean());
+  }
+
+  @Test
+  @DisplayName("GET /customer/products?available=true - no login")
+  void getFilteredProducts_shouldFilterByAvailability() throws Exception {
+
+    // Act & Assert
+    mockMvc
+        .perform(get("/customer/products").param("available", "true"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(4)))
+        .andExpect(jsonPath("$.totalElements").value(4))
+        .andExpect(jsonPath("$.content[0].available").isBoolean())
+        .andExpect(
+            jsonPath(
+                "$.content[*].name",
+                containsInAnyOrder(
+                    "Laptop Pro", "Wireless Mouse", "Java Programming", "Android Tablet")));
   }
 
   @Test
