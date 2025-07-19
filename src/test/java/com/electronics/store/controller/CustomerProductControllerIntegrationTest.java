@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -162,6 +163,21 @@ class CustomerProductControllerIntegrationTest {
             jsonPath(
                 "$.content[*].name",
                 containsInAnyOrder("Mechanical Keyboard", "Java Programming")));
+  }
+
+  @Test
+  @DisplayName("GET /customer/products?size=2&oage=1 - Should return empty if no products match filter - CUSTOMER role")
+  @WithMockUser(roles = "CUSTOMER")
+  void getFilteredProducts_shouldReturnEmptyIfNoProductsMatchFilter() throws Exception {
+
+    // Act & Assert
+    mockMvc
+            .perform(get("/customer/products")
+                    .param("category", "CLOTHING"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content", hasSize(0)))
+            .andExpect(jsonPath("$.totalElements").value(0))
+            .andExpect(jsonPath("$.totalPages").value(0));
   }
 
   @Test
