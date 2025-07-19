@@ -25,6 +25,8 @@ public class SecurityConfig {
                 authorize
                     .requestMatchers("/admin/**")
                     .hasRole("ADMIN")
+                    .requestMatchers("/customer/products/**")
+                    .permitAll()
                     .anyRequest()
                     .authenticated())
         .httpBasic(Customizer.withDefaults());
