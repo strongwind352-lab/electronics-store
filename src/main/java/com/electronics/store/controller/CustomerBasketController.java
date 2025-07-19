@@ -1,32 +1,28 @@
 package com.electronics.store.controller;
 
-import com.electronics.store.dto.ProductResponse;
-import com.electronics.store.mapper.ProductMapper;
-import com.electronics.store.mapper.ProductResponseMapper;
-import com.electronics.store.model.Product;
-import com.electronics.store.model.ProductCategory;
+import com.electronics.store.dto.BasketUpdateRequest;
 import com.electronics.store.service.BasketService;
-import com.electronics.store.service.ProductService;
-import java.math.BigDecimal;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/customer/baskets")
+@RequestMapping("/customer/basket")
 @RequiredArgsConstructor
-@PreAuthorize("permitAll()")
+@PreAuthorize("hasRole('CUSTOMER')")
 @Validated
 public class CustomerBasketController {
   private final BasketService basketService;
 
+  @PostMapping
+  public ResponseEntity<Void> addProductToBasket(@Valid @RequestBody BasketUpdateRequest request) {
+    basketService.addProductToBasket(request.getProductId(), request.getQuantity());
+    return ResponseEntity.ok().build();
+  }
 }
