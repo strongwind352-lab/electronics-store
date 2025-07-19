@@ -28,21 +28,20 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @Transactional
 class CustomerBasketControllerIntegrationTest {
+  private static final String TEST_USER_ID = "customer";
   @Autowired ObjectMapper objectMapper;
   @Autowired ProductRepository productRepository;
   Product laptop;
   @Autowired private MockMvc mockMvc;
 
-  private static final String TEST_USER_ID = "customer";
-
-    @BeforeEach
-    void setUp() {
+  @BeforeEach
+  void setUp() {
     productRepository.deleteAll();
     laptop =
         productRepository.save(
             new Product(
                 null, "Laptop Pro", ProductCategory.ELECTRONICS, BigDecimal.valueOf(1200.00), 10));
-      }
+  }
 
   @Test
   @DisplayName("POST /customer/basket/add - should succeed and and decrement stock - CUSTOMER ROLE")
@@ -69,5 +68,22 @@ class CustomerBasketControllerIntegrationTest {
         .perform(get("/admin/products", laptop.getId()).with(user("admin").roles("ADMIN")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].stock").value(8));
-      }
+  }
+
+  @Test
+  @DisplayName("POST /customer/basket/add - should return forbidden for non-customer role")
+  @WithMockUser(roles = "ADMIN")
+  void addProductToBasket_shouldReturnForbiddenForNonCustomer() throws Exception {
+    // Arrange
+    BasketUpdateRequest addRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(2).build();
+
+    // Act & Assert
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(addRequest)))
+        .andExpect(status().isForbidden());
+  }
 }
