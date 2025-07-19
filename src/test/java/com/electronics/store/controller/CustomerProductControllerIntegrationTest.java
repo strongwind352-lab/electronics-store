@@ -147,6 +147,24 @@ class CustomerProductControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName("GET /customer/products?size=2&oage=1 - Should paginate with no filter - no login")
+  void getFilteredProducts_shouldPaginate() throws Exception {
+
+    // Act & Assert
+    mockMvc
+        .perform(get("/customer/products").param("page", "1").param("size", "2"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(2)))
+        .andExpect(jsonPath("$.totalElements").value(5))
+        .andExpect(jsonPath("$.totalPages").value(3))
+        .andExpect(jsonPath("$.content[0].available").isBoolean())
+        .andExpect(
+            jsonPath(
+                "$.content[*].name",
+                containsInAnyOrder("Mechanical Keyboard", "Java Programming")));
+  }
+
+  @Test
   void getFilteredProducts() {
 
   }
