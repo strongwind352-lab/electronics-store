@@ -42,7 +42,7 @@ public class ProductService {
       spec =
           spec.and(
               (root, query, criteriaBuilder) ->
-                  criteriaBuilder.equal(root.get("productCategory"), productCategory));
+                  criteriaBuilder.equal(root.get("category"), productCategory));
     }
     if (minPrice != null && maxPrice != null) {
       spec =
