@@ -243,4 +243,34 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.stock").value(10));
   }
+
+  @Test
+  @DisplayName(
+      "POST /customer/basket/remove - should return not found for product not in basket - CUSTOMER role")
+  @WithMockUser(username = CUSTOMER_USER_ID, roles = "CUSTOMER")
+  void removeProductFromBasket_shouldReturnNotFoundForProductNotInBasket() throws Exception {
+    // Arrange
+    BasketUpdateRequest basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(3).build();
+
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isOk());
+    // now we have 3 laptops in the basket
+
+    // Arrange : now we call /customer/basket/remove and remove 3 laptops from the basket
+    basketUpdateRequest = BasketUpdateRequest.builder().productId(777L).quantity(3).build();
+
+    // Act & Assert : verify that returned basket is empty
+    mockMvc
+        .perform(
+            post("/customer/basket/remove")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Product with ID 777 not found."));
+  }
 }
