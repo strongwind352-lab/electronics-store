@@ -1,5 +1,6 @@
 package com.electronics.store.controller;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -53,6 +54,23 @@ class CustomerProductControllerIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(5))
                 .andExpect(jsonPath("$.content[0].available").isBoolean());
     }
+
+  @Test
+  @DisplayName(
+      "GET /customer/products?category=ELECTRONICS - should return all products with default pagination with category filters applied - no login")
+  void getFilteredProducts_shouldFilterByCategory() throws Exception {
+    mockMvc
+        .perform(get("/customer/products").param("category", "ELECTRONICS"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(4)))
+        .andExpect(jsonPath("$.totalElements").value(4))
+        .andExpect(jsonPath("$.content[0].available").isBoolean())
+        .andExpect(
+            jsonPath(
+                "$.content[*].name",
+                containsInAnyOrder(
+                    "Laptop Pro", "Wireless Mouse", "Mechanical Keyboard", "Android Tablet")));
+  }
 
   @Test
   void getFilteredProducts() {

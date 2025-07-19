@@ -33,14 +33,15 @@ public class CustomerProductController {
 
   @GetMapping
   public ResponseEntity<Page<ProductResponse>> getFilteredProducts(
-          @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
-          @RequestParam(required = false) ProductCategory productCategory,
-          @RequestParam(required = false) BigDecimal minPrice,
-          @RequestParam(required = false) BigDecimal maxPrice,
-          @RequestParam(required = false) Boolean available
-          ) {
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(required = false) ProductCategory category,
+      @RequestParam(required = false) BigDecimal minPrice,
+      @RequestParam(required = false) BigDecimal maxPrice,
+      @RequestParam(required = false) Boolean available) {
     Pageable pageable = PageRequest.of(page, size);
-    Page<Product> products = productService.filterProducts(productCategory,minPrice,maxPrice,available,pageable);
+    Page<Product> products =
+        productService.filterProducts(category, minPrice, maxPrice, available, pageable);
     Page<ProductResponse> productResponses = products.map(productResponseMapper::toDto);
     return new ResponseEntity<>(productResponses, HttpStatus.OK);
   }
