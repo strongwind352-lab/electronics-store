@@ -114,4 +114,23 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.stock").value(10));
   }
+
+  @Test
+  @DisplayName(
+      "POST /customer/basket/add - should return 404 not found for non-existent product - CUSTOMER role")
+  @WithMockUser(username = "customer", roles = "CUSTOMER")
+  void addProductToBasket_shouldReturnNotFoundForNonExistentProduct() throws Exception {
+    // Arrange
+    BasketUpdateRequest addRequest =
+        BasketUpdateRequest.builder().productId(12345L).quantity(1).build();
+
+    // Act & Assert 1 - POST to add product to basket
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(addRequest)))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Product with ID 12345 not found."));
+  }
 }
