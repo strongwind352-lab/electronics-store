@@ -319,6 +319,36 @@ class BasketServiceTest {
     verify(dealRepository, times(1)).findByProductId(anyLong());
   }
 
+  @Test
+  @DisplayName("Should calculate receipt with BOGO50 deal applied for an odd quantity of items")
+  void calculateReceipt_shouldCalculateReceiptWithBOGO50DealOddQuantity() {
+    // Arrange
+    customerBasket.getItems().add(new BasketItem(laptop.getId(), 3));
+    when(productService.findProductById(1L)).thenReturn(laptop);
+    Deal bogo50Deal =
+        new Deal(1L, laptop.getId(), DealType.BOGO50, LocalDateTime.now().plusHours(7));
+    when(dealRepository.findByProductId(1L)).thenReturn(Optional.of(bogo50Deal));
+
+    // Act
+    Receipt receipt = basketService.calculateReceipt();
+
+    // Assert
+    assertNotNull(receipt);
+    assertEquals(1, receipt.getItems().size());
+    assertEquals(1, receipt.getDealsApplied().size());
+    assertEquals("BOGO50 for Laptop Pro", receipt.getDealsApplied().get(0));
+
+    ReceiptItem laptopItem = receipt.getItems().get(0);
+    assertEquals(1L, laptopItem.getProductId());
+    assertEquals(3, laptopItem.getQuantity());
+    assertEquals(0, laptopItem.getPriceAfterDeal().compareTo(BigDecimal.valueOf(600.00)));
+    assertEquals("BOGO50", laptopItem.getDealApplied());
+    assertEquals(0, receipt.getTotalPrice().compareTo(BigDecimal.valueOf(3000.00)));
+
+    verify(productService, times(1)).findProductById(anyLong());
+    verify(dealRepository, times(1)).findByProductId(anyLong());
+  }
+
     @Test
     void addProductToBasket() {
       }
