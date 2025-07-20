@@ -9,11 +9,11 @@ http://localhost:8080/
 4. To run all tests for this project<br>
    ./mvnw clean test
 
-5. GET /admin/products <br>
+5. GET /admin/products - Admin route to get all products <br>
 curl --location 'http://localhost:8080/admin/products?page=0&size=999' \
 --header 'Authorization: Basic YWRtaW46QWRtaW5AMTIz' \
 --header 'Cookie: JSESSIONID=D8683D160526B0AC141A8079BE923DF1'
-6. POST /admin/products <br>
+6. POST /admin/products - Admin route to create a new product <br>
    curl --location 'http://localhost:8080/admin/products' \
    --header 'Content-Type: application/json' \
    --header 'Authorization: Basic YWRtaW46QWRtaW5AMTIz' \
@@ -25,11 +25,11 @@ curl --location 'http://localhost:8080/admin/products?page=0&size=999' \
    "stock": 5
    }'
 
-7. GET /admin/products/{productId} <br>
+7. GET /admin/products/{productId} - Admin route to get product details by its id <br>
    curl --location 'http://localhost:8080/admin/products/1' \
    --header 'Authorization: Basic YWRtaW46QWRtaW5AMTIz' \
    --header 'Cookie: JSESSIONID=D8683D160526B0AC141A8079BE923DF1'
-8. DELETE /admin/products/{productId} <br>
+8. DELETE /admin/products/{productId} - Admin route to delete a product by its id <br>
    curl --location --request DELETE 'http://localhost:8080/admin/products/47' \
    --header 'Content-Type: application/json' \
    --header 'Authorization: Basic YWRtaW46QWRtaW5AMTIz' \
@@ -41,7 +41,7 @@ curl --location 'http://localhost:8080/admin/products?page=0&size=999' \
    "stock": 5
    }'
 
-9. POST /admin/deals <br>
+9. POST /admin/deals - Admin route to create a new deal for a product by its productId <br>
    curl --location 'http://localhost:8080/admin/deals' \
    --header 'Content-Type: application/json' \
    --header 'Authorization: Basic YWRtaW46QWRtaW5AMTIz' \
@@ -52,11 +52,11 @@ curl --location 'http://localhost:8080/admin/products?page=0&size=999' \
    "expirationDate": "2026-07-25T23:16:44.264811700"
    }'
 
-10. GET /customer/products <br>
+10. GET /customer/products - Customer route to browse products<br>
     curl --location 'http://localhost:8080/customer/products?page=0&size=1000&category=ELECTRONICS&minPrice=500&maxPrice=99999&available=true' \
     --header 'Cookie: JSESSIONID=D8683D160526B0AC141A8079BE923DF1'
 
-11. POST /customer/basket/add <br>
+11. POST /customer/basket/add - Customer route to add a product to their basket <br>
     curl --location 'http://localhost:8080/customer/basket/add' \
     --header 'Content-Type: application/json' \
     --header 'Authorization: Basic Y3VzdG9tZXI6Q3VzdG9tZXJAMTIz' \
@@ -65,11 +65,11 @@ curl --location 'http://localhost:8080/admin/products?page=0&size=999' \
     "productId": 1,
     "quantity": 2
     }'
-12. GET /customer/basket/receipt <br>
+12. GET /customer/basket/receipt - Customer route to get a receipt of their basket<br>
     curl --location 'http://localhost:8080/customer/basket/receipt' \
     --header 'Authorization: Basic Y3VzdG9tZXI6Q3VzdG9tZXJAMTIz' \
     --header 'Cookie: JSESSIONID=2C4E2C658209A0D47B6347C854723247'
-13. POST /customer/basket/remove <br>
+13. POST /customer/basket/remove - Customer route to remove an item from their basket <br>
     curl --location 'http://localhost:8080/customer/basket/remove' \
     --header 'Content-Type: application/json' \
     --header 'Authorization: ••••••' \
