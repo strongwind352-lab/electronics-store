@@ -20,11 +20,14 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class BasketServiceTest {
 
   private static final String CUSTOMER_USER_ID = "customer";
@@ -72,6 +75,28 @@ class BasketServiceTest {
     assertEquals(newBasket.getUserId(), createdBasket.getUserId());
     verify(basketRepository, times(1)).findByUserId(CUSTOMER_USER_ID);
     verify(basketRepository, times(1)).save(any(Basket.class));
+  }
+
+  @Test
+  @DisplayName("Should throw IllegalStateException if no authenticated user for basket operations")
+  void getOrCreateBasket_shouldThrowIllegalStateExceptionIfNoAuthenticatedUser() {
+    // Arrange
+    SecurityContext unauthenticatedSecurityContext = mock(SecurityContext.class);
+    SecurityContextHolder.clearContext();
+    SecurityContextHolder.setContext(unauthenticatedSecurityContext);
+    Authentication unauthenticated = mock(Authentication.class);
+    when(unauthenticatedSecurityContext.getAuthentication()).thenReturn(unauthenticated);
+    when(unauthenticated.isAuthenticated()).thenReturn(false);
+
+    // Act
+    IllegalStateException illegalStateException =
+        assertThrows(IllegalStateException.class, () -> basketService.getOrCreateBasket());
+
+    // Assert
+    assertEquals("Authentication required", illegalStateException.getMessage());
+    verify(unauthenticated, never()).getName();
+    verify(basketRepository, never()).findByUserId(any(String.class));
+    verify(basketRepository, never()).save(any(Basket.class));
   }
 
     @Test
