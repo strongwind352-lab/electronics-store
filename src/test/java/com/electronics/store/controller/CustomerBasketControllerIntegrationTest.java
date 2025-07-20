@@ -401,4 +401,18 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(jsonPath("$.dealsApplied[0]").value("BOGO50 for Laptop Pro"))
         .andExpect(jsonPath("$.totalPrice").value(3000.0));
   }
+
+  @Test
+  @DisplayName(
+      "GET /customer/basket/receipt - should return empty receipt for empty basket - CUSTOMER role")
+  @WithMockUser(username = CUSTOMER_USER_ID, roles = "CUSTOMER")
+  void getReceipt_shouldReturnEmptyReceiptForEmptyBasket() throws Exception {
+    // Act & Assert
+    mockMvc
+        .perform(get("/customer/basket/receipt"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items").isEmpty())
+        .andExpect(jsonPath("$.dealsApplied").isEmpty())
+        .andExpect(jsonPath("$.totalPrice").value(0.0));
+  }
 }
