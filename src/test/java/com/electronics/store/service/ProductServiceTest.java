@@ -171,6 +171,22 @@ class ProductServiceTest {
     verify(productRepository, never()).save(ArgumentMatchers.any(Product.class));
   }
 
+  @Test
+  @DisplayName("Should successfully increment product stock and save the updated product")
+  void incrementProductStock_shouldIncrementProductStockSuccessfully() {
+    // Arrange
+    when(productRepository.findById(1L)).thenReturn(Optional.of(laptop));
+    when(productRepository.save(ArgumentMatchers.any(Product.class))).thenReturn(laptop);
+
+    // Act
+    productService.incrementProductStock(laptop.getId(), 3);
+
+    // Assert : Verify
+    assertEquals(13, laptop.getStock());
+    verify(productRepository, times(1)).findById(1L);
+    verify(productRepository, times(1)).save(laptop);
+  }
+
     @Test
     void removeProduct() {
       }
