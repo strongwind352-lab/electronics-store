@@ -3,12 +3,14 @@ package com.electronics.store.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.electronics.store.exception.InsufficientStockException;
 import com.electronics.store.model.Basket;
 import com.electronics.store.model.BasketItem;
 import com.electronics.store.model.Product;
@@ -150,6 +152,27 @@ class BasketServiceTest {
     assertEquals(12, updatedBasket.getItems().get(0).getQuantity());
     verify(productService, times(1)).decrementProductStock(1L, 3);
     verify(basketRepository, times(1)).save(customerBasket);
+  }
+
+  @Test
+  @DisplayName(
+      "Should throw InsufficientStockException when adding product with insufficient stock")
+  void
+      addProductToBasket_shouldThrowInsufficientStockExceptionWhenAddingProductWithInsufficientStock() {
+    // Arrange
+    doThrow(new InsufficientStockException("Not Enough Stock"))
+        .when(productService)
+        .decrementProductStock(1L, 99);
+
+    // Act
+    InsufficientStockException insufficientStockException =
+        assertThrows(
+            InsufficientStockException.class, () -> basketService.addProductToBasket(1L, 99));
+
+    // Assert
+    assertEquals("Not Enough Stock", insufficientStockException.getMessage());
+    verify(productService, times(1)).decrementProductStock(1L, 99);
+    verify(basketRepository, never()).save(any(Basket.class));
   }
 
     @Test
