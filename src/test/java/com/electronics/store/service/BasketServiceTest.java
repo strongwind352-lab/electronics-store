@@ -15,6 +15,8 @@ import com.electronics.store.exception.InsufficientStockException;
 import com.electronics.store.exception.ProductNotFoundException;
 import com.electronics.store.model.Basket;
 import com.electronics.store.model.BasketItem;
+import com.electronics.store.model.Deal;
+import com.electronics.store.model.DealType;
 import com.electronics.store.model.Product;
 import com.electronics.store.model.ProductCategory;
 import com.electronics.store.model.Receipt;
@@ -22,6 +24,7 @@ import com.electronics.store.model.ReceiptItem;
 import com.electronics.store.repository.BasketRepository;
 import com.electronics.store.repository.DealRepository;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -284,6 +287,36 @@ class BasketServiceTest {
 
     verify(productService, times(2)).findProductById(anyLong());
     verify(dealRepository, times(2)).findByProductId(anyLong());
+  }
+
+  @Test
+  @DisplayName("Should calculate receipt with BOGO50 deal applied for an even quantity of items")
+  void calculateReceipt_shouldCalculateReceiptWithBOGO50DealEvenQuantity() {
+    // Arrange
+    customerBasket.getItems().add(new BasketItem(laptop.getId(), 2));
+    when(productService.findProductById(1L)).thenReturn(laptop);
+    Deal bogo50Deal =
+            new Deal(1L, laptop.getId(), DealType.BOGO50, LocalDateTime.now().plusHours(7));
+    when(dealRepository.findByProductId(1L)).thenReturn(Optional.of(bogo50Deal));
+
+    // Act
+    Receipt receipt = basketService.calculateReceipt();
+
+    // Assert
+    assertNotNull(receipt);
+    assertEquals(1, receipt.getItems().size());
+    assertEquals(1, receipt.getDealsApplied().size());
+    assertEquals("BOGO50 for Laptop Pro", receipt.getDealsApplied().get(0));
+
+    ReceiptItem laptopItem = receipt.getItems().get(0);
+    assertEquals(1L, laptopItem.getProductId());
+    assertEquals(2, laptopItem.getQuantity());
+    assertEquals(0, laptopItem.getPriceAfterDeal().compareTo(BigDecimal.valueOf(600.00)));
+    assertEquals("BOGO50", laptopItem.getDealApplied());
+    assertEquals(0, receipt.getTotalPrice().compareTo(BigDecimal.valueOf(1800.00)));
+
+    verify(productService, times(1)).findProductById(anyLong());
+    verify(dealRepository, times(1)).findByProductId(anyLong());
   }
 
     @Test
