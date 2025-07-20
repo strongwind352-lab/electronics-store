@@ -281,6 +281,9 @@ class BasketServiceTest {
     assertTrue(mouseReceiptItemOptional.isPresent());
     assertNull(mouseReceiptItemOptional.get().getDealApplied());
     assertEquals(BigDecimal.valueOf(1250.0), receipt.getTotalPrice());
+
+    verify(productService, times(2)).findProductById(anyLong());
+    verify(dealRepository, times(2)).findByProductId(anyLong());
   }
 
     @Test
