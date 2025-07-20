@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.electronics.store.exception.InsufficientStockException;
 import com.electronics.store.exception.ProductNotFoundException;
 import com.electronics.store.model.Product;
 import com.electronics.store.model.ProductCategory;
@@ -130,6 +131,26 @@ class ProductServiceTest {
     assertEquals(7, laptop.getStock());
     verify(productRepository, times(1)).findById(1L);
     verify(productRepository, times(1)).save(laptop);
+  }
+
+  @Test
+  @DisplayName(
+      "Should throw InsufficientStockException when attempting to decrement stock beyond available quantity")
+  void decrementProductStock_shouldThrowInsufficientStockException() {
+    // Arrange
+    when(productRepository.findById(1L)).thenReturn(Optional.of(laptop));
+
+    // Act
+    InsufficientStockException insufficientStockException =
+        assertThrows(
+            InsufficientStockException.class,
+            () -> productService.decrementProductStock(laptop.getId(), 999));
+
+    // Assert
+    assertEquals(
+        "Insufficient stock for product ID 1. Available : 10 - Requested : 999",
+        insufficientStockException.getMessage());
+    verify(productRepository, never()).save(laptop);
   }
 
     @Test
