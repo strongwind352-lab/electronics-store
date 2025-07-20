@@ -65,7 +65,7 @@ curl --location 'http://localhost:8080/admin/products?page=0&size=999' \
 13. POST /customer/basket/remove - Customer route to remove an item from their basket <br>
     curl --location 'http://localhost:8080/customer/basket/remove' \
     --header 'Content-Type: application/json' \
-    --header 'Authorization: ••••••' \
+    --header 'Authorization: Basic Y3VzdG9tZXI6Q3VzdG9tZXJAMTIz' \
     --header 'Cookie: JSESSIONID=2C4E2C658209A0D47B6347C854723247' \
     --data '{
     "productId": 1,
