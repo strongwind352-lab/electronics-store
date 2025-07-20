@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.electronics.store.model.Basket;
+import com.electronics.store.model.BasketItem;
 import com.electronics.store.model.Product;
 import com.electronics.store.model.ProductCategory;
 import com.electronics.store.repository.BasketRepository;
@@ -125,6 +126,28 @@ class BasketServiceTest {
     assertEquals(1, updatedBasket.getItems().size());
     assertEquals(1, updatedBasket.getItems().get(0).getProductId());
     assertEquals(3, updatedBasket.getItems().get(0).getQuantity());
+    verify(productService, times(1)).decrementProductStock(1L, 3);
+    verify(basketRepository, times(1)).save(customerBasket);
+  }
+
+  @Test
+  @DisplayName("Should add more quantity to an existing product in the basket and decrement stock")
+  void addProductToBasket_shouldAddProductToExistingBasketItemAndDecrementStock() {
+    // Arrange
+    customerBasket.getItems().add(new BasketItem(1L, 9));
+    doNothing().when(productService).decrementProductStock(1L, 3);
+    when(basketRepository.save(any(Basket.class))).thenReturn(customerBasket);
+
+    // Act
+    Basket updatedBasket = basketService.addProductToBasket(1L, 3);
+
+    // Assert
+    assertNotNull(updatedBasket);
+    assertEquals(customerBasket.getId(), updatedBasket.getId());
+    assertEquals(customerBasket.getUserId(), updatedBasket.getUserId());
+    assertEquals(1, updatedBasket.getItems().size());
+    assertEquals(1, updatedBasket.getItems().get(0).getProductId());
+    assertEquals(12, updatedBasket.getItems().get(0).getQuantity());
     verify(productService, times(1)).decrementProductStock(1L, 3);
     verify(basketRepository, times(1)).save(customerBasket);
   }
