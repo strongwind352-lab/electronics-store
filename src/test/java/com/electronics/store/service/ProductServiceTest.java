@@ -309,6 +309,26 @@ class ProductServiceTest {
     verify(productRepository, times(1)).findAll(any(Specification.class), eq(pageable));
   }
 
+  @Test
+  @DisplayName("Should filter products by price range")
+  void filterProducts_shouldFilterProductsByAvailability() {
+    // Arrange
+    Pageable pageable = PageRequest.of(0, 10);
+    Page<Product> expectedPage = new PageImpl<>(List.of(laptop, mouse, keyboard), pageable, 3);
+
+    when(productRepository.findAll(any(Specification.class), eq(pageable)))
+        .thenReturn(expectedPage);
+
+    // Act
+    Page<Product> result = productService.filterProducts(null, null, null, true, pageable);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(3, result.getTotalElements());
+    assertTrue(result.getContent().stream().allMatch(Product::isAvailable));
+    verify(productRepository, times(1)).findAll(any(Specification.class), eq(pageable));
+  }
+
     @Test
     void removeProduct() {
       }
