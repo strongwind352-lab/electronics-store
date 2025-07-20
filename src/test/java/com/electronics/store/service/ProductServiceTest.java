@@ -3,6 +3,7 @@ package com.electronics.store.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,6 +54,21 @@ class ProductServiceTest {
         assertEquals("Laptop Pro", laptop.getName());
         verify(productRepository,times(1)).save(laptop);
       }
+
+    @Test
+    @DisplayName("Should remove product successfully")
+    void removeProduct_shouldRemoveProductSuccessfully() {
+        // Arrange
+        when(productRepository.existsById(1L)).thenReturn(true);
+        doNothing().when(productRepository).deleteById(1L);
+
+        // Act
+        productService.removeProduct(1L);
+
+        // Assert : Verify that product was successfully created
+        verify(productRepository,times(1)).existsById(1L);
+        verify(productRepository,times(1)).deleteById(1L);
+    }
 
     @Test
     void removeProduct() {
