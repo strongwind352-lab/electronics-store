@@ -3,11 +3,14 @@ package com.electronics.store.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.electronics.store.exception.ProductNotFoundException;
 import com.electronics.store.model.Product;
 import com.electronics.store.model.ProductCategory;
 import com.electronics.store.repository.ProductRepository;
@@ -69,6 +72,22 @@ class ProductServiceTest {
         verify(productRepository,times(1)).existsById(1L);
         verify(productRepository,times(1)).deleteById(1L);
     }
+
+  @Test
+  @DisplayName("Should remove product successfully")
+  void removeProduct_shouldThrowProductNotFoundExceptionWhenRemovingNonExistentProduct() {
+    // Arrange
+    when(productRepository.existsById(1L)).thenReturn(false);
+
+    // Act
+    ProductNotFoundException productNotFoundException =
+        assertThrows(ProductNotFoundException.class, () -> productService.removeProduct(1L));
+
+    // Assert : Verify
+    assertEquals("Product with ID 1 not found.", productNotFoundException.getMessage());
+    verify(productRepository, times(1)).existsById(1L);
+    verify(productRepository, never()).deleteById(1L);
+  }
 
     @Test
     void removeProduct() {
