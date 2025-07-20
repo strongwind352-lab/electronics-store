@@ -368,4 +368,37 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(jsonPath("$.dealsApplied[0]").value("BOGO50 for Laptop Pro"))
         .andExpect(jsonPath("$.totalPrice").value(1800.0));
   }
+
+  @Test
+  @DisplayName(
+      "GET /customer/basket/receipt - should calculate correctly with BOGO50 deal odd quantity - CUSTOMER role")
+  @WithMockUser(username = CUSTOMER_USER_ID, roles = "CUSTOMER")
+  void getReceipt_shouldCalculateCorrectlyWithBOGO50DealOddQuantity() throws Exception {
+    // Arrange: add BOGO50 deal for laptop
+    dealRepository.save(
+        new Deal(null, laptop.getId(), DealType.BOGO50, LocalDateTime.now().plusDays(7)));
+
+    // Arrange : add 3 laptops to the basket
+    BasketUpdateRequest basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(3).build();
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isOk());
+
+    // Act & Assert
+    mockMvc
+        .perform(get("/customer/basket/receipt"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(1)))
+        .andExpect(jsonPath("$.items[0].productId").value(laptop.getId()))
+        .andExpect(jsonPath("$.items[0].quantity").value(3))
+        .andExpect(jsonPath("$.items[0].priceAfterDeal").value(600.0))
+        .andExpect(jsonPath("$.items[0].dealApplied").value("BOGO50"))
+        .andExpect(jsonPath("$.dealsApplied", hasSize(1)))
+        .andExpect(jsonPath("$.dealsApplied[0]").value("BOGO50 for Laptop Pro"))
+        .andExpect(jsonPath("$.totalPrice").value(3000.0));
+  }
 }
