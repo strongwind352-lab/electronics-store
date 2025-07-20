@@ -2,10 +2,12 @@ package com.electronics.store.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.electronics.store.exception.ProductNotFoundException;
 import com.electronics.store.model.Deal;
 import com.electronics.store.model.DealType;
 import com.electronics.store.model.Product;
@@ -42,7 +44,7 @@ class DealServiceTest {
   @DisplayName("Should create deal successfully for an existing product")
   void createDeal_shouldCreateDealSuccessfullyForAnExistingProduct() {
     // Arrange
-    Deal deal = new Deal(1L, laptop.getId(), DealType.BOGO50, LocalDateTime.now());
+    Deal deal = new Deal(1L, laptop.getId(), DealType.BOGO50, LocalDateTime.now().plusDays(7));
     when(productRepository.existsById(laptop.getId())).thenReturn(true);
     when(dealRepository.save(any(Deal.class))).thenReturn(deal);
 
@@ -54,5 +56,24 @@ class DealServiceTest {
     assertEquals(DealType.BOGO50, deal.getDealType());
     verify(productRepository, times(1)).existsById(laptop.getId());
     verify(dealRepository, times(1)).save(any(Deal.class));
+  }
+
+  @Test
+  @DisplayName(
+      "Should throw ProductNotFoundException when adding a deal for a non-existent product")
+  void createDeal_shouldThrowProductNotFoundExceptionWhenAddingDealForNonExistentProduct() {
+    // Arrange
+    Deal deal = new Deal(1L, 999L, DealType.BOGO50, LocalDateTime.now().plusDays(7));
+    when(productRepository.existsById(999L)).thenReturn(false);
+
+    // Act
+    ProductNotFoundException productNotFoundException =
+        assertThrows(ProductNotFoundException.class, () -> dealService.createDeal(deal));
+
+    // Assert
+
+    assertEquals("Product with id: 999 does not exist", productNotFoundException.getMessage());
+    verify(productRepository, times(1)).existsById(999L);
+    verify(dealRepository, never()).save(any(Deal.class));
   }
 }
