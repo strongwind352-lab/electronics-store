@@ -121,7 +121,10 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.message")
-                .value("Insufficient stock for product ID 48. Available : 10 - Requested : 999"));
+                .value(
+                    String.format(
+                        "Insufficient stock for product ID %s. Available : %s - Requested : %s",
+                        laptop.getId(), laptop.getStock(), addRequest.getQuantity())));
 
     // Act @ Assert 2 - Verify that stock is unchanged
     mockMvc
