@@ -1,6 +1,7 @@
 package com.electronics.store.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -51,6 +53,25 @@ class BasketServiceTest {
     assertEquals(customerBasket.getUserId(), basket.getUserId());
     verify(basketRepository, times(1)).findByUserId(CUSTOMER_USER_ID);
     verify(basketRepository, never()).save(customerBasket);
+  }
+
+  @Test
+  @DisplayName("Should create a new basket if none exists for the authenticated user")
+  void getOrCreateBasket_shouldCreateNewBasketIfNoneExistsForAuthenticatedUser() {
+    // Arrange
+    when(basketRepository.findByUserId(CUSTOMER_USER_ID)).thenReturn(Optional.empty());
+    Basket newBasket = new Basket(2L, CUSTOMER_USER_ID, new ArrayList<>());
+    when(basketRepository.save(ArgumentMatchers.any(Basket.class))).thenReturn(newBasket);
+
+    // Act
+    Basket createdBasket = basketService.getOrCreateBasket();
+
+    // Assert
+    assertNotNull(createdBasket);
+    assertEquals(newBasket.getId(), createdBasket.getId());
+    assertEquals(newBasket.getUserId(), createdBasket.getUserId());
+    verify(basketRepository, times(1)).findByUserId(CUSTOMER_USER_ID);
+    verify(basketRepository, times(1)).save(any(Basket.class));
   }
 
     @Test
