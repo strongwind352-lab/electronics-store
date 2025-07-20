@@ -16,6 +16,7 @@ import com.electronics.store.model.ProductCategory;
 import com.electronics.store.repository.ProductRepository;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -114,6 +115,22 @@ class ProductServiceTest {
         assertEquals(mouse.getName(), allProducts.getContent().get(1).getName());
         verify(productRepository,times(1)).findAll(pageable);
     }
+
+  @Test
+  @DisplayName("Should decrement product stock")
+  void decrementProductStock_shouldDecrementProductStock() {
+    // Arrange
+    when(productRepository.findById(1L)).thenReturn(Optional.of(laptop));
+    when(productRepository.save(ArgumentMatchers.any(Product.class))).thenReturn(laptop);
+
+    // Act
+    productService.decrementProductStock(laptop.getId(), 3);
+
+    // Assert : Verify
+    assertEquals(7, laptop.getStock());
+    verify(productRepository, times(1)).findById(1L);
+    verify(productRepository, times(1)).save(laptop);
+  }
 
     @Test
     void removeProduct() {
