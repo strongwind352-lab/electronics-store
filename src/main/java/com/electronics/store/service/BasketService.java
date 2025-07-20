@@ -40,7 +40,7 @@ public class BasketService {
     return basketRepository.save(basket);
   }
 
-  private Basket getOrCreateBasket() {
+  public Basket getOrCreateBasket() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !authentication.isAuthenticated()) {
       throw new IllegalStateException("Authentication required");
