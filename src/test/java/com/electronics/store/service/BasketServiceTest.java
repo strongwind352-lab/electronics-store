@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.electronics.store.exception.InsufficientStockException;
+import com.electronics.store.exception.ProductNotFoundException;
 import com.electronics.store.model.Basket;
 import com.electronics.store.model.BasketItem;
 import com.electronics.store.model.Product;
@@ -172,6 +173,26 @@ class BasketServiceTest {
     // Assert
     assertEquals("Not Enough Stock", insufficientStockException.getMessage());
     verify(productService, times(1)).decrementProductStock(1L, 99);
+    verify(basketRepository, never()).save(any(Basket.class));
+  }
+
+  @Test
+  @DisplayName("Should throw ProductNotFoundException when adding a non-existent product")
+  void addProductToBasket_shouldThrowProductNotFoundExceptionWhenAddingNonExistentProduct() {
+    // Arrange
+    doThrow(new ProductNotFoundException("Product with ID 999 not found."))
+        .when(productService)
+        .decrementProductStock(999L, 3);
+    when(basketRepository.save(any(Basket.class))).thenReturn(customerBasket);
+
+    // Act
+    ProductNotFoundException productNotFoundException =
+        assertThrows(
+            ProductNotFoundException.class, () -> basketService.addProductToBasket(999L, 3));
+
+    // Assert
+    assertEquals("Product with ID 999 not found.", productNotFoundException.getMessage());
+    verify(productService, times(1)).decrementProductStock(999L, 3);
     verify(basketRepository, never()).save(any(Basket.class));
   }
 
