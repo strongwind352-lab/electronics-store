@@ -87,29 +87,25 @@ public class BasketService {
               .originalPrice(product.getPrice())
               .quantity(item.getQuantity())
               .priceAfterDeal(product.getPrice());
-      if (receiptItemNumber % 2 == 1) {
-        Optional<List<Deal>> dealsOptional = dealRepository.findByProductId(product.getId());
-        if (dealsOptional.isPresent()) {
-          List<Deal> deals = dealsOptional.get();
-          Deal bogo50Deal =
-              deals.stream()
-                  .filter(deal -> DealType.BOGO50.equals(deal.getDealType()) && deal.isActive())
-                  .findFirst()
-                  .orElse(null);
-          if (bogo50Deal != null) {
+      Optional<Deal> dealOptional = dealRepository.findByProductId(product.getId());
+      if (dealOptional.isPresent()) {
+        Deal deal = dealOptional.get();
+        if (DealType.BOGO50.equals(deal.getDealType()) && deal.isActive()) {
             receiptItemBuilder.priceAfterDeal(product.getPrice().multiply(BigDecimal.valueOf(0.5)));
             receiptItemBuilder.dealApplied(DealType.BOGO50.toString());
-            dealsApplied.add(DealType.BOGO50.toString());
-          }
+          dealsApplied.add(
+              String.format("%s for %s", DealType.BOGO50.toString(), product.getName()));
         }
       }
       ReceiptItem receiptItem = receiptItemBuilder.build();
+      for (int i = 0; i < receiptItem.getQuantity(); i++) {
+        if (i % 2 == 1) {
+          totalPrice = totalPrice.add(receiptItem.getPriceAfterDeal());
+        } else {
+          totalPrice = totalPrice.add(receiptItem.getOriginalPrice());
+        }
+      }
       receiptItems.add(receiptItem);
-      totalPrice =
-          totalPrice.add(
-              receiptItem
-                  .getPriceAfterDeal()
-                  .multiply(BigDecimal.valueOf(receiptItem.getQuantity())));
     }
 
     return Receipt.builder()

@@ -8,11 +8,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.electronics.store.dto.BasketUpdateRequest;
+import com.electronics.store.model.Deal;
+import com.electronics.store.model.DealType;
 import com.electronics.store.model.Product;
 import com.electronics.store.model.ProductCategory;
+import com.electronics.store.repository.DealRepository;
 import com.electronics.store.repository.ProductRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +36,7 @@ class CustomerBasketControllerIntegrationTest {
   private static final String ADMIN_USER_ID = "admin";
   @Autowired ObjectMapper objectMapper;
   @Autowired ProductRepository productRepository;
+  @Autowired DealRepository dealRepository;
   private Product laptop;
   private Product mouse;
   @Autowired private MockMvc mockMvc;
@@ -39,6 +44,7 @@ class CustomerBasketControllerIntegrationTest {
   @BeforeEach
   void setUp() {
     productRepository.deleteAll();
+    dealRepository.deleteAll();
     laptop =
         productRepository.save(
             new Product(
@@ -324,12 +330,42 @@ class CustomerBasketControllerIntegrationTest {
   }
 
   @Test
-  @DisplayName(
-          "GET /customer/basket/receipt - should return forbidden 403 for non customer role")
-  @WithMockUser(username = CUSTOMER_USER_ID, roles = "ADMIN")
+  @DisplayName("GET /customer/basket/receipt - should return forbidden 403 for non customer role")
+  @WithMockUser(username = ADMIN_USER_ID, roles = "ADMIN")
   void getReceipt_shouldReturnForbiddenForNonCustomer() throws Exception {
     mockMvc
             .perform(get("/customer/basket/receipt"))
             .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @DisplayName(
+      "GET /customer/basket/receipt - should calculate correctly with BOGO50 deal even quantity - CUSTOMER role")
+  @WithMockUser(username = CUSTOMER_USER_ID, roles = "CUSTOMER")
+  void getReceipt_shouldCalculateCorrectlyWithBOGO50DealEvenQuantity() throws Exception {
+    // Arrange: add BOGO50 deal for laptop
+    dealRepository.save(
+        new Deal(null, laptop.getId(), DealType.BOGO50, LocalDateTime.now().plusDays(7)));
+
+    // Arrange : add 2 laptops to the basket
+    BasketUpdateRequest basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(2).build();
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isOk());
+    mockMvc
+        .perform(get("/customer/basket/receipt"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(1)))
+        .andExpect(jsonPath("$.items[0].productId").value(laptop.getId()))
+        .andExpect(jsonPath("$.items[0].quantity").value(2))
+        .andExpect(jsonPath("$.items[0].priceAfterDeal").value(600.0))
+        .andExpect(jsonPath("$.items[0].dealApplied").value("BOGO50"))
+        .andExpect(jsonPath("$.dealsApplied", hasSize(1)))
+        .andExpect(jsonPath("$.dealsApplied[0]").value("BOGO50 for Laptop Pro"))
+        .andExpect(jsonPath("$.totalPrice").value(1800.0));
   }
 }
