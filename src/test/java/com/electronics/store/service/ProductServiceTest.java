@@ -280,6 +280,35 @@ class ProductServiceTest {
     verify(productRepository, times(1)).findAll(any(Specification.class), eq(pageable));
   }
 
+  @Test
+  @DisplayName("Should filter products by price range")
+  void filterProducts_shouldFilterProductsByPriceRange() {
+    // Arrange
+    Pageable pageable = PageRequest.of(0, 10);
+    Page<Product> expectedPage = new PageImpl<>(List.of(laptop, mouse), pageable, 2);
+    BigDecimal minPrice = BigDecimal.valueOf(10);
+    BigDecimal maxPrice = BigDecimal.valueOf(1200);
+
+    when(productRepository.findAll(any(Specification.class), eq(pageable)))
+        .thenReturn(expectedPage);
+
+    // Act
+    Page<Product> result =
+        productService.filterProducts(
+            ProductCategory.ELECTRONICS, minPrice, maxPrice, null, pageable);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(2, result.getTotalElements());
+    assertTrue(
+        result.getContent().stream()
+            .allMatch(
+                p ->
+                    p.getPrice().compareTo(maxPrice) <= 0
+                        && p.getPrice().compareTo(minPrice) >= 0));
+    verify(productRepository, times(1)).findAll(any(Specification.class), eq(pageable));
+  }
+
     @Test
     void removeProduct() {
       }
