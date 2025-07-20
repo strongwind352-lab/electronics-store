@@ -187,6 +187,25 @@ class ProductServiceTest {
     verify(productRepository, times(1)).save(laptop);
   }
 
+  @Test
+  @DisplayName(
+      "Should throw ProductNotFoundException when attempting to increment stock for a non-existent product")
+  void
+      incrementProductStock_shouldThrowProductNotFoundExceptionWhenIncrementingStockForNonExistentProduct() {
+    // Arrange
+    when(productRepository.findById(999L)).thenReturn(Optional.empty());
+
+    // Act
+    ProductNotFoundException productNotFoundException =
+        assertThrows(
+            ProductNotFoundException.class, () -> productService.incrementProductStock(999L, 1));
+
+    // Assert
+    assertEquals("Product with ID 999 not found.", productNotFoundException.getMessage());
+    verify(productRepository, times(1)).findById(999L);
+    verify(productRepository, never()).save(ArgumentMatchers.any(Product.class));
+  }
+
     @Test
     void removeProduct() {
       }
