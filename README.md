@@ -30,16 +30,9 @@ curl --location 'http://localhost:8080/admin/products?page=0&size=999' \
    --header 'Authorization: Basic YWRtaW46QWRtaW5AMTIz' \
    --header 'Cookie: JSESSIONID=D8683D160526B0AC141A8079BE923DF1'
 8. DELETE /admin/products/{productId} - Admin route to delete a product by its id <br>
-   curl --location --request DELETE 'http://localhost:8080/admin/products/47' \
-   --header 'Content-Type: application/json' \
+   curl --location --request DELETE 'http://localhost:8080/admin/products/46' \
    --header 'Authorization: Basic YWRtaW46QWRtaW5AMTIz' \
-   --header 'Cookie: JSESSIONID=D8683D160526B0AC141A8079BE923DF1' \
-   --data '{
-   "name": "AMD EPYC 9654",
-   "category": "ELECTRONICS",
-   "price": 6000.00,
-   "stock": 5
-   }'
+   --header 'Cookie: JSESSIONID=2C4E2C658209A0D47B6347C854723247'
 
 9. POST /admin/deals - Admin route to create a new deal for a product by its productId <br>
    curl --location 'http://localhost:8080/admin/deals' \
