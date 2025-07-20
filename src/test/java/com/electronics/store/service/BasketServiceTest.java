@@ -2,6 +2,7 @@ package com.electronics.store.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -9,7 +10,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.electronics.store.model.Basket;
+import com.electronics.store.model.Product;
+import com.electronics.store.model.ProductCategory;
 import com.electronics.store.repository.BasketRepository;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,9 +38,14 @@ class BasketServiceTest {
   @InjectMocks private BasketService basketService;
   @Mock private BasketRepository basketRepository;
   private Basket customerBasket;
+  private Product laptop;
+
+  @Mock private ProductService productService;
 
     @BeforeEach
     void setUp() {
+    laptop =
+        new Product(1L, "Laptop Pro", ProductCategory.ELECTRONICS, BigDecimal.valueOf(1200.00), 10);
     SecurityContext securityContext = mock(SecurityContext.class);
     SecurityContextHolder.setContext(securityContext);
     Authentication authentication = mock(Authentication.class);
@@ -97,6 +106,27 @@ class BasketServiceTest {
     verify(unauthenticated, never()).getName();
     verify(basketRepository, never()).findByUserId(any(String.class));
     verify(basketRepository, never()).save(any(Basket.class));
+  }
+
+  @Test
+  @DisplayName("Should add a product to an empty basket and decrement product stock")
+  void addProductToBasket_shouldAddProductToEmptyBasketAndDecrementStock() {
+    // Arrange
+    doNothing().when(productService).decrementProductStock(1L, 3);
+    when(basketRepository.save(any(Basket.class))).thenReturn(customerBasket);
+
+    // Act
+    Basket updatedBasket = basketService.addProductToBasket(1L, 3);
+
+    // Assert
+    assertNotNull(updatedBasket);
+    assertEquals(customerBasket.getId(), updatedBasket.getId());
+    assertEquals(customerBasket.getUserId(), updatedBasket.getUserId());
+    assertEquals(1, updatedBasket.getItems().size());
+    assertEquals(1, updatedBasket.getItems().get(0).getProductId());
+    assertEquals(3, updatedBasket.getItems().get(0).getQuantity());
+    verify(productService, times(1)).decrementProductStock(1L, 3);
+    verify(basketRepository, times(1)).save(customerBasket);
   }
 
     @Test
