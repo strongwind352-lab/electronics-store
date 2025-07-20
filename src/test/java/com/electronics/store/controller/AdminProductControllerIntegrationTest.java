@@ -163,10 +163,11 @@ class AdminProductControllerIntegrationTest {
   @DisplayName("DELETE /admin/products/{productId} - Should return 404 Not Found for a non-existent product - ADMIN")
   @WithMockUser(roles = "ADMIN")
   void deleteProduct_shouldReturnNotFoundForNonExistentProduct() throws Exception {
-    // Act & Assert: Perform DELETE request for a non-existent ID
-    mockMvc.perform(delete("/admin/products/{productId}", 999L))
-            .andExpect(status().isNotFound()) // Expect HTTP 404 Not Found
-            .andExpect(jsonPath("$.message").value("Product with ID 999 not found."));
+    // Act & Assert:
+    mockMvc
+        .perform(delete("/admin/products/{productId}", 999L))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Product with ID 999 not found."));
   }
 
   @Test

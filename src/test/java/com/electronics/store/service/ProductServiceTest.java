@@ -4,6 +4,9 @@ package com.electronics.store.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -16,6 +19,7 @@ import com.electronics.store.model.Product;
 import com.electronics.store.model.ProductCategory;
 import com.electronics.store.repository.ProductRepository;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -25,7 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,6 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -44,6 +48,7 @@ class ProductServiceTest {
 
     private Product laptop;
     private Product mouse;
+  private Product keyboard;
 
     @BeforeEach
     void setUp() {
@@ -51,6 +56,10 @@ class ProductServiceTest {
     mouse =
         new Product(
             2L, "Wireless Mouse", ProductCategory.ELECTRONICS, BigDecimal.valueOf(25.00), 50);
+
+    keyboard =
+        new Product(
+            3L, "Mechanical Keyboard", ProductCategory.ELECTRONICS, BigDecimal.valueOf(75.00), 20);
       }
 
     @Test
@@ -60,8 +69,8 @@ class ProductServiceTest {
     @Test
     @DisplayName("Should create product successfully")
     void createProduct_shouldCreateProductSuccessfully() {
-        // Arrange
-        when(productRepository.save(ArgumentMatchers.any(Product.class))).thenReturn(laptop);
+    // Arrange
+    when(productRepository.save(any(Product.class))).thenReturn(laptop);
 
         // Act
         Product createdProduct = productService.createProduct(laptop);
@@ -127,7 +136,7 @@ class ProductServiceTest {
   void decrementProductStock_shouldDecrementProductStock() {
     // Arrange
     when(productRepository.findById(1L)).thenReturn(Optional.of(laptop));
-    when(productRepository.save(ArgumentMatchers.any(Product.class))).thenReturn(laptop);
+    when(productRepository.save(any(Product.class))).thenReturn(laptop);
 
     // Act
     productService.decrementProductStock(laptop.getId(), 3);
@@ -173,7 +182,7 @@ class ProductServiceTest {
     // Assert
     assertEquals("Product with ID 999 not found.", productNotFoundException.getMessage());
     verify(productRepository, times(1)).findById(999L);
-    verify(productRepository, never()).save(ArgumentMatchers.any(Product.class));
+    verify(productRepository, never()).save(any(Product.class));
   }
 
   @Test
@@ -181,7 +190,7 @@ class ProductServiceTest {
   void incrementProductStock_shouldIncrementProductStockSuccessfully() {
     // Arrange
     when(productRepository.findById(1L)).thenReturn(Optional.of(laptop));
-    when(productRepository.save(ArgumentMatchers.any(Product.class))).thenReturn(laptop);
+    when(productRepository.save(any(Product.class))).thenReturn(laptop);
 
     // Act
     productService.incrementProductStock(laptop.getId(), 3);
@@ -208,7 +217,7 @@ class ProductServiceTest {
     // Assert
     assertEquals("Product with ID 999 not found.", productNotFoundException.getMessage());
     verify(productRepository, times(1)).findById(999L);
-    verify(productRepository, never()).save(ArgumentMatchers.any(Product.class));
+    verify(productRepository, never()).save(any(Product.class));
   }
 
   @Test
@@ -225,7 +234,7 @@ class ProductServiceTest {
             BigDecimal.valueOf(1200.00),
             originalStock);
       when(productRepository.findById(2L)).thenReturn(Optional.of(concurrentProduct));
-    when(productRepository.save(ArgumentMatchers.any(Product.class))).thenReturn(concurrentProduct);
+    when(productRepository.save(any(Product.class))).thenReturn(concurrentProduct);
 
     // Act
     int numThreads = 16;
@@ -246,6 +255,29 @@ class ProductServiceTest {
         concurrentProduct.getStock()); // 197 - 7*16 = 85
     verify(productRepository, times(numThreads)).findById(2L);
     verify(productRepository, times(numThreads)).save(concurrentProduct);
+  }
+
+  @Test
+  @DisplayName("Should filter products by category")
+  void filterProducts_shouldFilterProductsByCategory() {
+    // Arrange
+    Pageable pageable = PageRequest.of(0, 10);
+    Page<Product> expectedPage =
+        new PageImpl<>(Arrays.asList(laptop, mouse, keyboard), pageable, 3);
+
+    when(productRepository.findAll(any(Specification.class), eq(pageable)))
+        .thenReturn(expectedPage);
+
+    // Act
+    Page<Product> result =
+        productService.filterProducts(ProductCategory.ELECTRONICS, null, null, null, pageable);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(3, result.getTotalElements());
+    assertTrue(
+        result.getContent().stream().allMatch(p -> p.getCategory() == ProductCategory.ELECTRONICS));
+    verify(productRepository, times(1)).findAll(any(Specification.class), eq(pageable));
   }
 
     @Test

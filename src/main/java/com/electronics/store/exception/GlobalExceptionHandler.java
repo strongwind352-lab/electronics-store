@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, WebRequest request) {
-        // Collect all validation errors into a single string for clarity.
+
         String errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
