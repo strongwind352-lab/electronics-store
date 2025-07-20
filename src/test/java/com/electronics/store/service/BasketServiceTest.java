@@ -349,6 +349,19 @@ class BasketServiceTest {
     verify(dealRepository, times(1)).findByProductId(anyLong());
   }
 
+  @Test
+  @DisplayName("Should return an empty receipt for an empty basket")
+  void calculateReceipt_shouldCalculateReceiptForEmptyBasket() {
+    // Act: Calculate receipt for an empty basket
+    Receipt receipt = basketService.calculateReceipt();
+
+    // Assert: Verify receipt is empty
+    assertNotNull(receipt);
+    assertTrue(receipt.getItems().isEmpty());
+    assertTrue(receipt.getDealsApplied().isEmpty());
+    assertEquals(0, receipt.getTotalPrice().compareTo(BigDecimal.valueOf(0)));
+  }
+
     @Test
     void addProductToBasket() {
       }
