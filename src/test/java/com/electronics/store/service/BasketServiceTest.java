@@ -218,6 +218,26 @@ class BasketServiceTest {
     verify(basketRepository, times(1)).save(any(Basket.class));
   }
 
+  @Test
+  @DisplayName("Should remove a product entirely from basket and increment all its stock")
+  void removeProductFromBasket_shouldRemoveProductEntirelyFromBasketAndIncrementAllStock() {
+    // Arrange
+    customerBasket.getItems().add(new BasketItem(1L, 10));
+    doNothing().when(productService).decrementProductStock(1L, 10);
+    when(basketRepository.save(any(Basket.class))).thenReturn(customerBasket);
+
+    // Act
+    Basket updatedBasket = basketService.removeProductFromBasket(1L, 10);
+
+    // Assert
+    assertNotNull(updatedBasket);
+    assertEquals(customerBasket.getId(), updatedBasket.getId());
+    assertEquals(customerBasket.getUserId(), updatedBasket.getUserId());
+    assertEquals(0, updatedBasket.getItems().size());
+    verify(productService, times(1)).incrementProductStock(1L, 10);
+    verify(basketRepository, times(1)).save(any(Basket.class));
+  }
+
     @Test
     void addProductToBasket() {
       }
