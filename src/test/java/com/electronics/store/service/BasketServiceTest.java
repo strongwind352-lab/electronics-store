@@ -362,6 +362,23 @@ class BasketServiceTest {
     assertEquals(0, receipt.getTotalPrice().compareTo(BigDecimal.valueOf(0)));
   }
 
+  @Test
+  @DisplayName(
+      "Should handle ProductNotFoundException during receipt calculation by propagating the exception")
+  void calculateReceipt_shouldHandleProductNotFoundExceptionDuringReceiptCalculationGracefully() {
+    // Arrange
+    customerBasket.getItems().add(new BasketItem(999L, 2));
+    doThrow(new ProductNotFoundException("Product with ID 999 not found."))
+        .when(productService)
+        .findProductById(999L);
+
+    ProductNotFoundException productNotFoundException =
+        assertThrows(ProductNotFoundException.class, () -> basketService.calculateReceipt());
+    assertEquals("Product with ID 999 not found.", productNotFoundException.getMessage());
+    verify(productService, times(1)).findProductById(999L);
+    verify(dealRepository, never()).findByProductId(999L);
+  }
+
     @Test
     void addProductToBasket() {
       }
