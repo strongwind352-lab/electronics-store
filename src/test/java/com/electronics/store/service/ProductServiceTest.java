@@ -18,6 +18,9 @@ import com.electronics.store.repository.ProductRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,7 +48,9 @@ class ProductServiceTest {
     @BeforeEach
     void setUp() {
         laptop = new Product(1L, "Laptop Pro", ProductCategory.ELECTRONICS, BigDecimal.valueOf(1200.00), 10);
-        mouse = mouse = new Product(2L, "Wireless Mouse", ProductCategory.ELECTRONICS, BigDecimal.valueOf(25.00), 50);
+    mouse =
+        new Product(
+            2L, "Wireless Mouse", ProductCategory.ELECTRONICS, BigDecimal.valueOf(25.00), 50);
       }
 
     @Test
@@ -204,6 +209,43 @@ class ProductServiceTest {
     assertEquals("Product with ID 999 not found.", productNotFoundException.getMessage());
     verify(productRepository, times(1)).findById(999L);
     verify(productRepository, never()).save(ArgumentMatchers.any(Product.class));
+  }
+
+  @Test
+  @DisplayName("Concurrent stock decrement should be thread-safe and result in correct final stock")
+  void decrementProductStock_concurrentStockDecrementShouldBeThreadSafe()
+      throws InterruptedException {
+    // Arrange
+    int originalStock = 197;
+    Product concurrentProduct =
+        new Product(
+            2L,
+            "Head Phone",
+            ProductCategory.ELECTRONICS,
+            BigDecimal.valueOf(1200.00),
+            originalStock);
+      when(productRepository.findById(2L)).thenReturn(Optional.of(concurrentProduct));
+    when(productRepository.save(ArgumentMatchers.any(Product.class))).thenReturn(concurrentProduct);
+
+    // Act
+    int numThreads = 16;
+    int perThreadDecrement = 7;
+    ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+    for (int i = 0; i < numThreads; i++) {
+      executorService.submit(
+          () -> {
+            productService.decrementProductStock(2L, perThreadDecrement);
+          });
+    }
+    executorService.shutdown();
+    boolean result = executorService.awaitTermination(1000, TimeUnit.SECONDS);
+
+    // Assert
+    assertEquals(
+        originalStock - numThreads * perThreadDecrement,
+        concurrentProduct.getStock()); // 197 - 7*16 = 85
+    verify(productRepository, times(numThreads)).findById(2L);
+    verify(productRepository, times(numThreads)).save(concurrentProduct);
   }
 
     @Test

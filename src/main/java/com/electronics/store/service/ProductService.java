@@ -5,6 +5,7 @@ import com.electronics.store.model.Product;
 import com.electronics.store.model.ProductCategory;
 import com.electronics.store.repository.ProductRepository;
 import java.math.BigDecimal;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ProductService {
   private final ProductRepository productRepository;
+  private final ConcurrentHashMap<Long, Object> productsLock = new ConcurrentHashMap<>();
 
   public Page<Product> getAllProducts(Pageable pageable) {
     return productRepository.findAll(pageable);
@@ -81,8 +83,11 @@ public class ProductService {
 
   public void decrementProductStock(Long productId, int quantity) {
     Product product = findProductById(productId);
-    product.decrementStock(quantity);
-    productRepository.save(product);
+    productsLock.putIfAbsent(productId, new Object());
+    synchronized (productsLock.get(productId)) {
+      product.decrementStock(quantity);
+      productRepository.save(product);
+    }
   }
 
   public void incrementProductStock(Long productId, int quantity) {
