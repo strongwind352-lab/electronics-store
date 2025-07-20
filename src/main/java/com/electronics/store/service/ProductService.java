@@ -92,7 +92,9 @@ public class ProductService {
 
   public void incrementProductStock(Long productId, int quantity) {
     Product product = findProductById(productId);
-    product.incrementStock(quantity);
-    productRepository.save(product);
+    synchronized (productsLock.get(productId)) {
+      product.incrementStock(quantity);
+      productRepository.save(product);
+    }
   }
 }

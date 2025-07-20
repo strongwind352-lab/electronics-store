@@ -2,6 +2,7 @@ package com.electronics.store.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -16,7 +17,10 @@ import com.electronics.store.model.Basket;
 import com.electronics.store.model.BasketItem;
 import com.electronics.store.model.Product;
 import com.electronics.store.model.ProductCategory;
+import com.electronics.store.model.Receipt;
+import com.electronics.store.model.ReceiptItem;
 import com.electronics.store.repository.BasketRepository;
+import com.electronics.store.repository.DealRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -43,13 +47,20 @@ class BasketServiceTest {
   @Mock private BasketRepository basketRepository;
   private Basket customerBasket;
   private Product laptop;
+  private Product mouse;
 
   @Mock private ProductService productService;
+
+  @Mock private DealRepository dealRepository;
 
     @BeforeEach
     void setUp() {
     laptop =
         new Product(1L, "Laptop Pro", ProductCategory.ELECTRONICS, BigDecimal.valueOf(1200.00), 10);
+
+    mouse =
+        new Product(
+            2L, "Wireless Mouse", ProductCategory.ELECTRONICS, BigDecimal.valueOf(25.00), 50);
     SecurityContext securityContext = mock(SecurityContext.class);
     SecurityContextHolder.setContext(securityContext);
     Authentication authentication = mock(Authentication.class);
@@ -236,6 +247,40 @@ class BasketServiceTest {
     assertEquals(0, updatedBasket.getItems().size());
     verify(productService, times(1)).incrementProductStock(1L, 10);
     verify(basketRepository, times(1)).save(any(Basket.class));
+  }
+
+  @Test
+  @DisplayName("Should calculate receipt correctly with no deals applied")
+  void calculateReceipt_shouldCalculateReceiptWithNoDealsApplied() {
+    // Arrange
+    customerBasket.getItems().add(new BasketItem(laptop.getId(), 1));
+    customerBasket.getItems().add(new BasketItem(mouse.getId(), 2));
+    when(productService.findProductById(1L)).thenReturn(laptop);
+    when(productService.findProductById(2L)).thenReturn(mouse);
+    when(dealRepository.findByProductId(anyLong())).thenReturn(Optional.empty());
+
+    // Act
+    Receipt receipt = basketService.calculateReceipt();
+
+    // Assert
+    assertNotNull(receipt);
+    assertEquals(2, receipt.getItems().size());
+    assertTrue(receipt.getDealsApplied().isEmpty());
+
+    Optional<ReceiptItem> laptopReceiptItemOptional =
+        receipt.getItems().stream()
+            .filter(item -> item.getProductId().equals(laptop.getId()))
+            .findFirst();
+    assertTrue(laptopReceiptItemOptional.isPresent());
+    assertNull(laptopReceiptItemOptional.get().getDealApplied());
+
+    Optional<ReceiptItem> mouseReceiptItemOptional =
+        receipt.getItems().stream()
+            .filter(item -> item.getProductId().equals(laptop.getId()))
+            .findFirst();
+    assertTrue(mouseReceiptItemOptional.isPresent());
+    assertNull(mouseReceiptItemOptional.get().getDealApplied());
+    assertEquals(BigDecimal.valueOf(1250.0), receipt.getTotalPrice());
   }
 
     @Test
