@@ -26,7 +26,7 @@ public class BasketService {
   private final ProductService productService;
 
   public Basket addProductToBasket(Long productId, int quantity) {
-    Basket basket = getOrUpdateBasket();
+    Basket basket = getOrCreateBasket();
     productService.decrementProductStock(productId, quantity);
     Optional<BasketItem> existingBasket =
         basket.getItems().stream()
@@ -40,7 +40,7 @@ public class BasketService {
     return basketRepository.save(basket);
   }
 
-  private Basket getOrUpdateBasket() {
+  private Basket getOrCreateBasket() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !authentication.isAuthenticated()) {
       throw new IllegalStateException("Authentication required");
@@ -53,7 +53,7 @@ public class BasketService {
   }
 
   public Basket removeProductFromBasket(Long productId, int quantity) {
-    Basket basket = getOrUpdateBasket();
+    Basket basket = getOrCreateBasket();
     productService.incrementProductStock(productId, quantity);
     Optional<BasketItem> existingBasketItem =
         basket.getItems().stream()
@@ -70,7 +70,7 @@ public class BasketService {
   }
 
   public Receipt calculateReceipt() {
-    Basket basket = getOrUpdateBasket();
+    Basket basket = getOrCreateBasket();
     List<ReceiptItem> receiptItems = new ArrayList<>();
     List<String> dealsApplied = new ArrayList<>();
     BigDecimal totalPrice = BigDecimal.ZERO;
