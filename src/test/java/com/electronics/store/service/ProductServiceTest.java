@@ -310,7 +310,7 @@ class ProductServiceTest {
   }
 
   @Test
-  @DisplayName("Should filter products by price range")
+  @DisplayName("Should filter products by availability")
   void filterProducts_shouldFilterProductsByAvailability() {
     // Arrange
     Pageable pageable = PageRequest.of(0, 10);
@@ -326,6 +326,36 @@ class ProductServiceTest {
     assertNotNull(result);
     assertEquals(3, result.getTotalElements());
     assertTrue(result.getContent().stream().allMatch(Product::isAvailable));
+    verify(productRepository, times(1)).findAll(any(Specification.class), eq(pageable));
+  }
+
+  @Test
+  @DisplayName("Should filter products by all criteria")
+  void filterProducts_shouldFilterProductsByAllCriteria() {
+    // Arrange
+    Pageable pageable = PageRequest.of(0, 10);
+    Page<Product> expectedPage = new PageImpl<>(List.of(laptop, mouse, keyboard), pageable, 3);
+    BigDecimal minPrice = BigDecimal.valueOf(10);
+    BigDecimal maxPrice = BigDecimal.valueOf(1200);
+    when(productRepository.findAll(any(Specification.class), eq(pageable)))
+        .thenReturn(expectedPage);
+
+    // Act
+    Page<Product> result =
+        productService.filterProducts(
+            ProductCategory.ELECTRONICS, minPrice, maxPrice, true, pageable);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(3, result.getTotalElements());
+    assertTrue(
+        result.getContent().stream()
+            .allMatch(
+                p ->
+                    p.isAvailable()
+                        && p.getPrice().compareTo(maxPrice) <= 0
+                        && p.getPrice().compareTo(minPrice) >= 0
+                        && ProductCategory.ELECTRONICS.equals(p.getCategory())));
     verify(productRepository, times(1)).findAll(any(Specification.class), eq(pageable));
   }
 
