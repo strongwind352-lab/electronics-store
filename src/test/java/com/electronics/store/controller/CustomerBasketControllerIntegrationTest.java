@@ -415,4 +415,35 @@ class CustomerBasketControllerIntegrationTest {
         .andExpect(jsonPath("$.dealsApplied").isEmpty())
         .andExpect(jsonPath("$.totalPrice").value(0.0));
   }
+
+  @Test
+  @DisplayName("GET /customer/basket/receipt - should apply expired deals - CUSTOMER role")
+  @WithMockUser(username = CUSTOMER_USER_ID, roles = "CUSTOMER")
+  void getReceipt_shouldNotApplyExpiredDeals() throws Exception {
+    // Arrange: add BOGO50 deal for laptop
+    dealRepository.save(
+        new Deal(null, laptop.getId(), DealType.BOGO50, LocalDateTime.now().minusDays(1)));
+
+    // Arrange : add 2 laptops to the basket
+    BasketUpdateRequest basketUpdateRequest =
+        BasketUpdateRequest.builder().productId(laptop.getId()).quantity(2).build();
+    mockMvc
+        .perform(
+            post("/customer/basket/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(basketUpdateRequest)))
+        .andExpect(status().isOk());
+
+    // Act & Assert
+    mockMvc
+        .perform(get("/customer/basket/receipt"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(1)))
+        .andExpect(jsonPath("$.items[0].productId").value(laptop.getId()))
+        .andExpect(jsonPath("$.items[0].quantity").value(2))
+        .andExpect(jsonPath("$.items[0].priceAfterDeal").value(1200.0))
+        .andExpect(jsonPath("$.items[0].dealApplied").doesNotExist())
+        .andExpect(jsonPath("$.dealsApplied").isEmpty())
+        .andExpect(jsonPath("$.totalPrice").value(2400.0));
+  }
 }
