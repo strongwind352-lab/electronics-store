@@ -49,6 +49,7 @@ class ProductServiceTest {
     private Product laptop;
     private Product mouse;
   private Product keyboard;
+  private Product outOfStockItem; // Added for filtering tests
 
     @BeforeEach
     void setUp() {
@@ -60,6 +61,8 @@ class ProductServiceTest {
     keyboard =
         new Product(
             3L, "Mechanical Keyboard", ProductCategory.ELECTRONICS, BigDecimal.valueOf(75.00), 20);
+    outOfStockItem =
+        new Product(4L, "Broken TV", ProductCategory.ELECTRONICS, BigDecimal.valueOf(500.00), 0);
       }
 
     @Test
@@ -356,6 +359,27 @@ class ProductServiceTest {
                         && p.getPrice().compareTo(maxPrice) <= 0
                         && p.getPrice().compareTo(minPrice) >= 0
                         && ProductCategory.ELECTRONICS.equals(p.getCategory())));
+    verify(productRepository, times(1)).findAll(any(Specification.class), eq(pageable));
+  }
+
+  @Test
+  @DisplayName("Should return all products with no filters applied")
+  void filterProducts_shouldReturnAllProductsWithNoFiltersApplied() {
+    // Arrange
+    Pageable pageable = PageRequest.of(0, 10);
+    Page<Product> expectedPage =
+        new PageImpl<>(List.of(laptop, mouse, keyboard, outOfStockItem), pageable, 3);
+
+    when(productRepository.findAll(any(Specification.class), eq(pageable)))
+        .thenReturn(expectedPage);
+
+    // Act
+    Page<Product> result =
+        productService.filterProducts(ProductCategory.ELECTRONICS, null, null, null, pageable);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(4, result.getTotalElements());
     verify(productRepository, times(1)).findAll(any(Specification.class), eq(pageable));
   }
 
