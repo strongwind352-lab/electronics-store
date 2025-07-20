@@ -76,4 +76,25 @@ class DealServiceTest {
     verify(productRepository, times(1)).existsById(999L);
     verify(dealRepository, never()).save(any(Deal.class));
   }
+
+    @Test
+    @DisplayName("Deal should be considered active if its expiration date is in the future")
+    void dealShouldBeActiveIfExpirationDateInFuture() {
+        Deal deal = new Deal(1L, laptop.getId(), DealType.BOGO50, LocalDateTime.now().plusDays(7));
+        assertTrue(deal.isActive());
+    }
+
+    @Test
+    @DisplayName("Deal should be considered active if its expiration date is null (no expiration)")
+    void dealShouldBeActiveIfExpirationDateIsNull() {
+        Deal deal = new Deal(1L, laptop.getId(), DealType.BOGO50, null);
+        assertTrue(deal.isActive());
+    }
+
+    @Test
+    @DisplayName("Deal should not be considered active if its expiration date is in the past")
+    void dealShouldNotBeActiveIfExpirationDateInPast() {
+        Deal deal = new Deal(1L, laptop.getId(), DealType.BOGO50, LocalDateTime.now().minusDays(1));
+        assertFalse(deal.isActive());
+    }
 }
